@@ -4,6 +4,11 @@
   "type": "module",
   "main": "dist/index.cjs",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CosmosMount/obsidian-githubpage",
+    "directory": "packages/cli"
+  },
   "engines": { "node": ">=20.11" },
   "publishConfig": { "access": "public" },
   "bin": {
