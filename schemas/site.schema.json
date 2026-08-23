@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.example.invalid/obsidian-githubpage/site.schema.json",
+  "title": "Obsidian GitHubPage site configuration",
+  "type": "object",
+  "required": ["schemaVersion", "engineVersion", "site", "content", "theme"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "engineVersion": { "type": "string" },
+    "site": {
+      "type": "object",
+      "required": ["title", "baseUrl", "language"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "baseUrl": { "type": "string", "format": "uri" },
+        "language": { "type": "string", "minLength": 2 }
+      },
+      "additionalProperties": false
+    },
+    "content": {
+      "type": "object",
+      "required": ["root", "exclude", "assetExtensions"],
+      "properties": {
+        "root": { "type": "string" },
+        "exclude": { "type": "array", "items": { "type": "string" } },
+        "assetExtensions": { "type": "array", "items": { "type": "string", "pattern": "^\\.[A-Za-z0-9]+$" } }
+      },
+      "additionalProperties": false
+    },
+    "theme": {
+      "type": "object",
+      "required": ["path"],
+      "properties": { "path": { "type": "string" } },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

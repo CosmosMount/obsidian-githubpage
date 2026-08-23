@@ -1,0 +1,17 @@
+<html lang="{{language}}" data-base-path="{{basePath}}">
+<head>
+{{{head}}}
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-title" href="{{basePath}}/">{{siteTitle}}</a>
+    <div class="site-actions">{{{search}}}{{{darkMode}}}</div>
+  </header>
+  <div class="site-layout">
+    <aside class="site-sidebar">{{{navigation}}}</aside>
+    <main class="site-main">{{{breadcrumbs}}}{{{content}}}</main>
+    <aside class="site-toc">{{{tableOfContents}}}</aside>
+  </div>
+{{{runtime}}}
+</body>
+</html>

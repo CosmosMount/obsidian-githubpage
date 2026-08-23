@@ -1,0 +1,12 @@
+{
+  "name": "githubpage-vault",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "obsidian-githubpage build --root . --output _site",
+    "validate": "obsidian-githubpage validate --root ."
+  },
+  "devDependencies": {
+    "@obsidian-githubpage/cli": "1.0.0"
+  }
+}

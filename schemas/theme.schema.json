@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.example.invalid/obsidian-githubpage/theme.schema.json",
+  "title": "Obsidian GitHubPage theme manifest",
+  "type": "object",
+  "required": ["schemaVersion", "id", "name", "version", "layout", "components", "tokens"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "version": { "type": "string" },
+    "layout": {
+      "type": "object",
+      "required": ["template"],
+      "properties": { "template": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "components": {
+      "type": "object",
+      "required": ["navigation", "breadcrumbs", "tableOfContents", "search", "darkMode"],
+      "properties": {
+        "navigation": { "type": "boolean" },
+        "breadcrumbs": { "type": "boolean" },
+        "tableOfContents": { "type": "boolean" },
+        "search": { "type": "boolean" },
+        "darkMode": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "tokens": { "type": "object", "additionalProperties": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

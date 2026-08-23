@@ -1,0 +1,14 @@
+{
+  "name": "@obsidian-githubpage/cli",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "license": "MIT",
+  "engines": { "node": ">=20.11" },
+  "publishConfig": { "access": "public" },
+  "bin": {
+    "obsidian-githubpage": "dist/index.cjs"
+  },
+  "files": ["dist"],
+  "dependencies": {}
+}

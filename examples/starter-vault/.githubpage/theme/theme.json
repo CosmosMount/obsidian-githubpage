@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "githubpage-default",
+  "name": "GitHubPage Default",
+  "version": "1.0.0",
+  "layout": { "template": "layout.html" },
+  "components": {
+    "navigation": true,
+    "breadcrumbs": true,
+    "tableOfContents": true,
+    "search": true,
+    "darkMode": true
+  },
+  "tokens": {
+    "accent": "#6d5dfc",
+    "content-width": "760px",
+    "sidebar-width": "280px",
+    "font-body": "Inter, system-ui, sans-serif",
+    "font-mono": "ui-monospace, SFMono-Regular, Consolas, monospace"
+  }
+}

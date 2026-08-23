@@ -1,0 +1,6 @@
+{
+  "name": "@obsidian-githubpage/default-theme",
+  "version": "1.0.0",
+  "private": true,
+  "files": ["theme"]
+}

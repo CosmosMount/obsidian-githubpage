@@ -1,0 +1,43 @@
+name: Release plugin and CLI
+
+on:
+  push:
+    tags: ["*"]
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - name: Verify tag and package versions
+        run: |
+          test "${GITHUB_REF_NAME}" = "$(node -p "require('./manifest.json').version")"
+          test "${GITHUB_REF_NAME}" = "$(node -p "require('./packages/cli/package.json').version")"
+      - name: Attest release artifacts
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+            packages/cli/dist/index.cjs
+      - name: Publish standalone CLI
+        run: npm publish ./packages/cli --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Create Obsidian plugin release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" --generate-notes main.js manifest.json styles.css

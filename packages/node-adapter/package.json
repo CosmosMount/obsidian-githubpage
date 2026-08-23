@@ -1,0 +1,16 @@
+{
+  "name": "@obsidian-githubpage/node-adapter",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.cjs",
+  "types": "src/index.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "dependencies": {
+    "@obsidian-githubpage/core": "1.0.0",
+    "picomatch": "4.0.5"
+  }
+}

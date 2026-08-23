@@ -1,0 +1,21 @@
+{
+  "name": "@obsidian-githubpage/core",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.cjs",
+  "types": "src/index.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "dependencies": {
+    "gray-matter": "4.0.3",
+    "handlebars": "4.7.9",
+    "katex": "0.16.25",
+    "markdown-it": "15.0.0",
+    "markdown-it-footnote": "4.0.0",
+    "picomatch": "4.0.5",
+    "zod": "4.1.12"
+  }
+}

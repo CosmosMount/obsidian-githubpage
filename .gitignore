@@ -1,0 +1,20 @@
+node_modules/
+main.js
+*.map
+packages/*/dist/
+
+# Local agent metadata
+.agents/
+.codex/
+AGENTS.md
+
+# Tests and test output
+tests/
+vitest.config.ts
+coverage/
+.vitest/
+test-results/
+playwright-report/
+
+examples/starter-vault/_site/
+examples/starter-vault/.githubpage/.cache/
