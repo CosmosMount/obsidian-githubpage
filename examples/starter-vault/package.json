@@ -7,6 +7,6 @@
     "validate": "obsidian-githubpage validate --root ."
   },
   "devDependencies": {
-    "@obsidian-githubpage/cli": "1.0.0"
+    "@obsidian-githubpage/cli": "1.0.1"
   }
 }

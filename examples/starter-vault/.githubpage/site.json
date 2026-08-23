@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "engineVersion": "1.0.0",
+  "engineVersion": "1.0.1",
   "site": {
     "title": "My GitHubPage Vault",
     "baseUrl": "https://YOUR_NAME.github.io/YOUR_REPOSITORY",
