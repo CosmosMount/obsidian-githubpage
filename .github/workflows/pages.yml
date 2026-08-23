@@ -1,7 +1,10 @@
-name: Build and deploy GitHubPage
+name: Demo site GitHub Pages
 
 on:
   pull_request:
+    paths:
+      - ".github/workflows/pages.yml"
+      - "examples/starter-vault/**"
   push:
     branches: [main]
   workflow_dispatch:
@@ -10,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pages-${{ github.ref }}
+  group: demo-pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -25,24 +28,28 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: package-lock.json
-      - name: Install the exact renderer
+          cache-dependency-path: examples/starter-vault/package-lock.json
+      - name: Install the exact published renderer
+        working-directory: examples/starter-vault
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Validate and build
+      - name: Validate and build the demo Vault
+        working-directory: examples/starter-vault
         run: npm run validate && npm run build
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
-      - uses: actions/upload-artifact@v6
+      - name: Upload pull request artifact
         if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v6
         with:
-          name: githubpage-${{ github.sha }}
-          path: _site
+          name: demo-site-${{ github.sha }}
+          path: examples/starter-vault/_site
           if-no-files-found: error
-      - uses: actions/upload-pages-artifact@v4
+      - name: Upload GitHub Pages artifact
         if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
         with:
-          path: _site
+          path: examples/starter-vault/_site
 
   deploy:
     if: github.event_name != 'pull_request'
@@ -55,6 +62,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy GitHub Pages
+      - name: Deploy official demo site
         id: deployment
         uses: actions/deploy-pages@v4

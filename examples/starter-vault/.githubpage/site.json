@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "engineVersion": "1.0.1",
   "site": {
-    "title": "My GitHubPage Vault",
-    "baseUrl": "https://YOUR_NAME.github.io/YOUR_REPOSITORY",
-    "language": "en"
+    "title": "Obsidian GitHubPage 演示与发布指南",
+    "baseUrl": "https://cosmosmount.github.io/obsidian-githubpage",
+    "language": "zh-CN"
   },
   "content": {
     "root": ".",

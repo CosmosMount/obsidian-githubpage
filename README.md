@@ -2,6 +2,14 @@
 
 Obsidian GitHubPage 是一个桌面端 Obsidian 插件：将 GitHub Pages 仓库根目录直接作为 Vault，以 Obsidian 原生方式编写，并在 Obsidian 中预览由线上部署使用的同一渲染核心、同一主题和同一精确版本生成的网站。
 
+## 在线验证
+
+- [官方演示站](https://cosmosmount.github.io/obsidian-githubpage/)：由公开 npm CLI 从示例 Vault 构建并部署。
+- [发布到 GitHub Pages](https://cosmosmount.github.io/obsidian-githubpage/Guides/Publishing/)：完整仓库结构、配置、Workflow 与验收步骤。
+- [插件 Release](https://github.com/CosmosMount/obsidian-githubpage/releases/latest) 与 [npm CLI](https://www.npmjs.com/package/@obsidian-githubpage/cli)。
+
+演示站源码位于 [`examples/starter-vault`](examples/starter-vault)，根目录的 Pages Workflow 每次从 npm 安装精确版本 CLI，因此线上页面本身就是发布链路的端到端验证。
+
 ## 已实现能力
 
 - 共享的纯 TypeScript 渲染核心，同时供插件预览和构建 CLI 使用。
@@ -59,9 +67,7 @@ CLI 遇到配置、主题、歧义链接、失效 wikilink、失效 Markdown 链
 
 ```bash
 npm install
-npm run typecheck
-npm test
-npm run build
+npm run check
 ```
 
 构建会在根目录生成 Obsidian 所需的 `main.js`，并生成独立的 CLI、核心和 Node 适配器产物。插件发布需包含 `main.js`、`manifest.json` 和 `styles.css`。
