@@ -256,7 +256,7 @@ function installMath(markdown: MarkdownItInstance, diagnostics: BuildDiagnostic[
     token.map = [startLine, nextLine + 1];
     state.line = nextLine + 1;
     return true;
-  });
+  }, { alt: ["paragraph"] });
   markdown.renderer.rules.math_block = (tokens: Token[], index: number) => renderMath(tokens[index]?.content ?? "", true, diagnostics, sourcePath);
 }
 

@@ -109,7 +109,7 @@ export class PreviewServer {
     if (this.basePath && decoded !== this.basePath && !decoded.startsWith(`${this.basePath}/`)) return undefined;
     const withoutBase = this.basePath ? decoded.slice(this.basePath.length) || "/" : decoded;
     const raw = withoutBase.replace(/^\/+/, "");
-    const normalized = path.posix.normalize(raw || "index.html");
+    const normalized = raw ? path.posix.normalize(raw) : ".";
     if (normalized === ".." || normalized.startsWith("../") || path.posix.isAbsolute(normalized)) return undefined;
     let outputPath: string;
     if (withoutBase.endsWith("/") || !raw) {
