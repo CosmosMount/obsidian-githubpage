@@ -6,7 +6,7 @@ Obsidian GitHubPage 是一个桌面端 Obsidian 插件：将 GitHub Pages 仓库
 
 - [官方演示站](https://cosmosmount.github.io/obsidian-githubpage/)：由公开 npm CLI 从示例 Vault 构建并部署。
 - [发布到 GitHub Pages](https://cosmosmount.github.io/obsidian-githubpage/Guides/Publishing/)：完整仓库结构、配置、Workflow 与验收步骤。
-- [插件 Release](https://github.com/CosmosMount/obsidian-githubpage/releases/latest) 与 [npm CLI](https://www.npmjs.com/package/@obsidian-githubpage/cli)。
+- [插件 Release](https://github.com/CosmosMount/obsidian-githubpage/releases/latest)、[Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip) 与 [npm CLI](https://www.npmjs.com/package/@obsidian-githubpage/cli)。
 
 演示站源码位于 [`examples/starter-vault`](examples/starter-vault)，根目录的 Pages Workflow 每次从 npm 安装精确版本 CLI，因此线上页面本身就是发布链路的端到端验证。
 
@@ -24,12 +24,15 @@ Obsidian GitHubPage 是一个桌面端 Obsidian 插件：将 GitHub Pages 仓库
 ## 使用方式
 
 1. 安装并启用本插件一次。
-2. 克隆一个兼容仓库，例如 [`examples/starter-vault`](examples/starter-vault)。
-3. 修改 `.githubpage/site.json` 中的站点地址，将仓库根目录作为 Obsidian Vault 打开。
-4. 执行 **GitHubPage: Open website preview**，在原生编辑器旁查看网站预览。
-5. 在设置中填写作者分支名，通过命令面板创建 `author/<作者>/<任务>` 分支、提交并同步，然后打开 GitHub PR。
+2. 如果已有兼容仓库，直接克隆它并将仓库根目录作为 Obsidian Vault 打开；如果是空 Vault，可执行 **GitHubPage: Initialize Starter Vault from GitHub**，插件会从最新 Release 下载并写入完整模板。
+3. 也可以直接下载 [Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip)，解压到仓库根目录。
+4. 修改 `.githubpage/site.json` 中的站点地址。
+5. 执行 **GitHubPage: Open website preview**，在原生编辑器旁查看网站预览。
+6. 在设置中填写作者分支名，通过命令面板创建 `author/<作者>/<任务>` 分支、提交并同步，然后打开 GitHub PR。
 
 插件不会保存 GitHub Token。HTTPS 使用 Git Credential Manager/系统密钥环，SSH 使用现有密钥。Vault 根目录必须同时是 Git 根目录，避免插件误操作上级仓库。
+
+初始化命令只在缺少 `.githubpage/site.json` 时执行，并且会在写入前检查所有目标文件；已有文件不会被覆盖。它不会替用户创建 GitHub 仓库、配置 `origin` 或提交 Git，仓库创建和权限仍由 GitHub/Git 完成。
 
 ## 仓库协议
 

@@ -134,3 +134,5 @@ npm run build
 - 页面源码中的 generator 版本与 `engineVersion` 一致。
 
 站点仓库不需要 npm 发布 Token；公开 CLI 可以直接安装。继续阅读 [[Guides/Git-Collaboration|多人 Git 协作]]。
+
+如果不想手动创建上述目录，可以从 [最新 Release 下载 Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip)，或在已打开的空 Vault 中执行插件命令 **GitHubPage: Initialize Starter Vault from GitHub**。插件会检查目标文件冲突后再写入，不会覆盖已有笔记。

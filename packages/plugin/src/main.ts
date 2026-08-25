@@ -6,6 +6,7 @@ import {
   Notice,
   Plugin,
   TFile,
+  requestUrl,
   type TAbstractFile,
   type WorkspaceLeaf,
 } from "obsidian";
@@ -16,6 +17,7 @@ import { ConflictModal, GitStatusModal, promptCommit, promptText } from "./modal
 import { GithubPagePreviewView, PREVIEW_VIEW_TYPE } from "./preview-view";
 import { PreviewServer } from "./preview-server";
 import { DEFAULT_SETTINGS, GithubPageSettingTab, sanitizeSlug, type GithubPageSettings } from "./settings";
+import { installStarterArchive, STARTER_ARCHIVE_URL } from "./starter-installer";
 
 export default class GithubPagePlugin extends Plugin {
   settings: GithubPageSettings = { ...DEFAULT_SETTINGS };
@@ -89,6 +91,11 @@ export default class GithubPagePlugin extends Plugin {
     this.addRibbonIcon("globe-2", "Open GitHubPage preview", () => void this.openPreview());
     this.addCommand({ id: "open-preview", name: "Open website preview", callback: () => void this.openPreview() });
     this.addCommand({
+      id: "initialize-starter-vault",
+      name: "Initialize Starter Vault from GitHub",
+      callback: () => void this.initializeStarterVault(),
+    });
+    this.addCommand({
       id: "rebuild-preview",
       name: "Rebuild website preview",
       callback: () => void this.requireCompatible(async () => this.requireCoordinator().buildNow()),
@@ -122,6 +129,31 @@ export default class GithubPagePlugin extends Plugin {
       const active = this.app.workspace.getActiveFile();
       if (active) (leaf.view as GithubPagePreviewView).navigate(this.requireCoordinator().getRouteForVaultPath(active.path));
     });
+  }
+
+  async initializeStarterVault(): Promise<void> {
+    const siteConfigPath = path.join(this.vaultRoot, ".githubpage", "site.json");
+    try {
+      await fs.access(siteConfigPath);
+      new Notice("This Vault already has a GitHubPage site configuration.");
+      return;
+    } catch {
+      // First-time initialization is allowed when the site configuration is absent.
+    }
+
+    try {
+      new Notice("Downloading the GitHubPage Starter Vault…");
+      const response = await requestUrl({ url: STARTER_ARCHIVE_URL, method: "GET" });
+      const fileCount = await installStarterArchive(this.vaultRoot, response.arrayBuffer);
+      this.configWatcher?.close();
+      this.configWatcher = undefined;
+      this.startConfigWatcher();
+      await this.coordinator?.buildNow();
+      new Notice(`Initialized GitHubPage Starter Vault (${fileCount} files).`);
+    } catch (error) {
+      new Notice(`GitHubPage initialization failed: ${messageFromUnknown(error)}`, 8000);
+      console.error("[GitHubPage] Starter Vault initialization failed", error);
+    }
   }
 
   private async showGitStatus(): Promise<void> {

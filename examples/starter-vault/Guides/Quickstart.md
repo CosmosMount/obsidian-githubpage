@@ -14,6 +14,12 @@ styles.css
 
 把它们放入 Vault 的 `.obsidian/plugins/obsidian-githubpage/`，然后在 Obsidian 的社区插件设置中启用 **GitHubPage**。v1 仅支持 Windows、macOS 和 Linux 桌面端。
 
+## 自动下载 Starter Vault
+
+打开一个空目录作为 Vault 后，执行 **GitHubPage: Initialize Starter Vault from GitHub**，或在插件设置中点击 **Download and initialize**。插件会从 [最新 Release 的 Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip) 下载并解压完整模板，包括 `.github/workflows/pages.yml`、`.githubpage/`、`package.json`、`package-lock.json` 和 `index.md`。
+
+也可以直接下载 ZIP 并解压到仓库根目录。初始化不会覆盖已有文件，也不会自动创建 GitHub 远端仓库或提交 Git。
+
 ## 打开兼容仓库
 
 ```bash

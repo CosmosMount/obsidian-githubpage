@@ -1,9 +1,10 @@
 {
   "id": "obsidian-githubpage",
   "name": "GitHubPage",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minAppVersion": "1.7.2",
   "description": "Edit a GitHub Pages vault natively, preview it with the production renderer, and collaborate through Git.",
-  "author": "Obsidian GitHubPage contributors",
+  "author": "cosmosmount",
+  "authorUrl": "https://github.com/CosmosMount",
   "isDesktopOnly": true
 }

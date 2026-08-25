@@ -57,6 +57,13 @@ export class GithubPageSettingTab extends PluginSettingTab {
           }
         }),
       );
+
+    new Setting(this.containerEl)
+      .setName("Starter Vault")
+      .setDesc("Download the official template into an empty Vault. Existing files are never overwritten.")
+      .addButton((button) =>
+        button.setButtonText("Download and initialize").onClick(() => void this.plugin.initializeStarterVault()),
+      );
   }
 }
 

@@ -26,6 +26,26 @@ jobs:
         run: |
           test "${GITHUB_REF_NAME}" = "$(node -p "require('./manifest.json').version")"
           test "${GITHUB_REF_NAME}" = "$(node -p "require('./packages/cli/package.json').version")"
+      - name: Publish standalone CLI
+        run: npm publish ./packages/cli --access public
+      - name: Pin Starter Vault to the release version
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: |
+          npm pkg set "devDependencies.@obsidian-githubpage/cli=${RELEASE_VERSION}" --prefix examples/starter-vault
+          node -e "const fs=require('fs');const file='examples/starter-vault/.githubpage/site.json';const value=JSON.parse(fs.readFileSync(file,'utf8'));value.engineVersion=process.env.RELEASE_VERSION;fs.writeFileSync(file,JSON.stringify(value,null,2)+'\\n')"
+      - name: Install and validate published CLI in Starter Vault
+        working-directory: examples/starter-vault
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run validate
+          npm run build
+      - name: Package Starter Vault download
+        run: |
+          cd examples/starter-vault
+          zip -r ../../obsidian-githubpage-starter-vault.zip . \
+            -x "_site/*" "node_modules/*" ".git/*" ".githubpage/.cache/*"
       - name: Attest release artifacts
         uses: actions/attest@v4
         with:
@@ -34,9 +54,8 @@ jobs:
             manifest.json
             styles.css
             packages/cli/dist/index.cjs
-      - name: Publish standalone CLI
-        run: npm publish ./packages/cli --access public
+            obsidian-githubpage-starter-vault.zip
       - name: Create Obsidian plugin release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" --generate-notes main.js manifest.json styles.css
+        run: gh release create "${GITHUB_REF_NAME}" --generate-notes main.js manifest.json styles.css obsidian-githubpage-starter-vault.zip
