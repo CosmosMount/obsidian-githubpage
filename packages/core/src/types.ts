@@ -1,4 +1,4 @@
-export const ENGINE_VERSION = "1.0.2";
+export const ENGINE_VERSION = "1.0.3";
 
 export interface SiteConfig {
   schemaVersion: 1;

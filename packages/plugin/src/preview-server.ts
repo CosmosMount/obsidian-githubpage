@@ -55,17 +55,18 @@ export class PreviewServer {
       response.writeHead(302, {
         ...securityHeaders("text/plain; charset=utf-8"),
         "Set-Cookie": `${this.cookieName}=${this.token}; Path=/; HttpOnly; SameSite=Strict`,
-        Location: `${this.basePath}${route}` || "/",
+        Location: `${this.sessionPrefix()}${this.basePath}${route}` || "/",
       });
       response.end();
       return;
     }
-    if (!hasValidCookie(cookie, this.cookieName, this.token)) {
+    const sessionPath = this.sessionPath(requestUrl.pathname);
+    if (sessionPath === undefined && !hasValidCookie(cookie, this.cookieName, this.token)) {
       response.writeHead(403, securityHeaders("text/plain; charset=utf-8"));
       response.end("Forbidden");
       return;
     }
-    const output = this.resolveOutput(requestUrl.pathname);
+    const output = this.resolveOutput(sessionPath ?? requestUrl.pathname);
     if (!output) {
       response.writeHead(404, securityHeaders("text/plain; charset=utf-8"));
       response.end("Not found");
@@ -75,7 +76,31 @@ export class PreviewServer {
       ...securityHeaders(output.mediaType),
       "Cache-Control": "no-store",
     });
-    response.end(output.content);
+    response.end(sessionPath === undefined ? output.content : this.rewriteForSession(output));
+  }
+
+  private sessionPrefix(): string {
+    return `/__preview/${this.token}`;
+  }
+
+  private sessionPath(pathname: string): string | undefined {
+    const prefix = this.sessionPrefix();
+    if (pathname !== prefix && !pathname.startsWith(`${prefix}/`)) return undefined;
+    return pathname.slice(prefix.length) || "/";
+  }
+
+  private rewriteForSession(output: OutputFile): string | Uint8Array {
+    if (!output.mediaType.toLowerCase().startsWith("text/html")) return output.content;
+    const html = typeof output.content === "string" ? output.content : new TextDecoder().decode(output.content);
+    const prefix = this.sessionPrefix();
+    if (!this.basePath) {
+      return html
+        .replace(/data-base-path=["']["']/, `data-base-path="${prefix}"`)
+        .replace(/((?:href|src|action|poster)=["'])\//g, `$1${prefix}/`);
+    }
+    const marker = escapeRegExp(this.basePath);
+    return html
+      .replace(new RegExp(`(["'])${marker}(?=(?:/|["']))`, "g"), `$1${prefix}${this.basePath}`);
   }
 
   private resolveOutput(pathname: string): OutputFile | undefined {
@@ -115,6 +140,10 @@ function decodePath(value: string): string {
   } catch {
     return "/__invalid__";
   }
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function hasValidCookie(cookieHeader: string, cookieName: string, token: string): boolean {
