@@ -34,7 +34,7 @@ vault/
     "build": "obsidian-githubpage build --root . --output _site"
   },
   "devDependencies": {
-    "@obsidian-githubpage/cli": "1.0.3"
+    "@obsidian-githubpage/cli": "1.0.4"
   }
 }
 ```
@@ -44,7 +44,7 @@ vault/
 ```json
 {
   "schemaVersion": 1,
-  "engineVersion": "1.0.3",
+  "engineVersion": "1.0.4",
   "site": {
     "title": "我的知识库",
     "baseUrl": "https://YOUR_NAME.github.io/YOUR_REPOSITORY",
