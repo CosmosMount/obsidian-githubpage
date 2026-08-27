@@ -20,7 +20,7 @@ export const BUILTIN_RUNTIME = `(() => {
     const storageKey = "githubpage-sidebar-" + side;
     let collapsed = false;
     try { collapsed = localStorage.getItem(storageKey) === "collapsed"; } catch { /* storage is optional */ }
-    const apply = (next: boolean) => {
+    const apply = (next) => {
       collapsed = next;
       panel.classList.toggle("is-collapsed", collapsed);
       layout.dataset[side + "Collapsed"] = String(collapsed);

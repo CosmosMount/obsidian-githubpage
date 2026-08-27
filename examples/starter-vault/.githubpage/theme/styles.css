@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --background: #fff;
   --surface: #f7f7fb;
   --text: #24252a;
@@ -7,7 +7,7 @@
   --border: #e2e3ea;
   --code: #f1f1f6;
 }
-:root[data-theme="dark"] { --background: #17181d; --surface: #202127; --text: #e9e9ee; --muted: #a7a8b2; --border: #34353d; --code: #282930; }
+:root[data-theme="dark"] { color-scheme: dark; --background: #17181d; --surface: #202127; --text: #e9e9ee; --muted: #a7a8b2; --border: #34353d; --code: #282930; }
 * { box-sizing: border-box; }
 html { background: var(--background); color: var(--text); font-family: var(--font-body); }
 body { margin: 0; line-height: 1.65; }
@@ -26,6 +26,11 @@ img, video { max-width: 100%; height: auto; border-radius: .5rem; }
 .site-layout[data-right-collapsed="true"] { grid-template-columns: var(--sidebar-width) minmax(0, var(--content-width)) 2.5rem; }
 .site-layout[data-left-collapsed="true"][data-right-collapsed="true"] { grid-template-columns: 2.5rem minmax(0, var(--content-width)) 2.5rem; }
 .site-sidebar, .site-toc { position: sticky; top: 5rem; align-self: start; max-height: calc(100vh - 6rem); overflow: auto; }
+.site-sidebar, .site-toc, .page-content pre, .page-content .math-scroll { scrollbar-color: var(--border) var(--surface); scrollbar-width: thin; }
+.site-sidebar::-webkit-scrollbar, .site-toc::-webkit-scrollbar, .page-content pre::-webkit-scrollbar, .page-content .math-scroll::-webkit-scrollbar { width: .65rem; height: .65rem; }
+.site-sidebar::-webkit-scrollbar-track, .site-toc::-webkit-scrollbar-track, .page-content pre::-webkit-scrollbar-track, .page-content .math-scroll::-webkit-scrollbar-track { background: var(--surface); border-radius: .4rem; }
+.site-sidebar::-webkit-scrollbar-thumb, .site-toc::-webkit-scrollbar-thumb, .page-content pre::-webkit-scrollbar-thumb, .page-content .math-scroll::-webkit-scrollbar-thumb { background: var(--border); border: 2px solid var(--surface); border-radius: .4rem; }
+.site-sidebar::-webkit-scrollbar-thumb:hover, .site-toc::-webkit-scrollbar-thumb:hover, .page-content pre::-webkit-scrollbar-thumb:hover, .page-content .math-scroll::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 .sidebar-header { display: flex; align-items: center; justify-content: space-between; gap: .35rem; min-height: 2rem; margin-bottom: .35rem; color: var(--muted); font-size: .85rem; font-weight: 700; }
 .sidebar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sidebar-toggle { flex: 0 0 auto; width: 1.75rem; height: 1.75rem; padding: 0; border: 1px solid var(--border); border-radius: .35rem; background: var(--surface); color: var(--text); cursor: pointer; font: inherit; line-height: 1; }
