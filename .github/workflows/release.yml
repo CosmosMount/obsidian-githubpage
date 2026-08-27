@@ -43,9 +43,11 @@ jobs:
             if [ "${attempt}" = "12" ]; then echo "Published CLI was not visible in npm registry" >&2; exit 1; fi
             sleep 5
           done
-          npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "@obsidian-githubpage/cli@${RELEASE_VERSION}"
-          node node_modules/@obsidian-githubpage/cli/dist/index.cjs validate --root .
-          node node_modules/@obsidian-githubpage/cli/dist/index.cjs build --root . --output _site
+          CLI_DIR="${RUNNER_TEMP}/githubpage-cli"
+          mkdir -p "${CLI_DIR}"
+          npm install --prefix "${CLI_DIR}" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "@obsidian-githubpage/cli@${RELEASE_VERSION}"
+          node "${CLI_DIR}/node_modules/@obsidian-githubpage/cli/dist/index.cjs" validate --root .
+          node "${CLI_DIR}/node_modules/@obsidian-githubpage/cli/dist/index.cjs" build --root . --output _site
       - name: Package Starter Vault download
         run: |
           cd examples/starter-vault

@@ -84,9 +84,11 @@ jobs:
         env:
           ENGINE_VERSION: ${{ steps.renderer.outputs.version }}
         run: |
-          npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "@obsidian-githubpage/cli@${ENGINE_VERSION}"
-          node node_modules/@obsidian-githubpage/cli/dist/index.cjs validate --root .
-          node node_modules/@obsidian-githubpage/cli/dist/index.cjs build --root . --output _site
+          CLI_DIR="${RUNNER_TEMP}/githubpage-cli"
+          mkdir -p "${CLI_DIR}"
+          npm install --prefix "${CLI_DIR}" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "@obsidian-githubpage/cli@${ENGINE_VERSION}"
+          node "${CLI_DIR}/node_modules/@obsidian-githubpage/cli/dist/index.cjs" validate --root .
+          node "${CLI_DIR}/node_modules/@obsidian-githubpage/cli/dist/index.cjs" build --root . --output _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
