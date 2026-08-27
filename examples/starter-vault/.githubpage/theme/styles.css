@@ -50,7 +50,7 @@ img, video { max-width: 100%; height: auto; border-radius: .5rem; }
 .page-content :not(pre) > code { padding: .1rem .3rem; border-radius: .25rem; background: var(--code); }
 .page-content table { width: 100%; border-collapse: collapse; }
 .page-content th, .page-content td { padding: .45rem .6rem; border: 1px solid var(--border); text-align: left; }
-.page-content .math-scroll { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; }
+.page-content .math-scroll { display: inline-block; min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; }
 .page-content .math-scroll.math-display { display: block; width: 100%; padding-block: .15rem; }
 .page-content .math-scroll .katex-display { margin: 0; overflow: visible; }
 .page-content blockquote { margin-inline: 0; padding: .1rem 1rem; border-left: .25rem solid var(--border); color: var(--muted); }
