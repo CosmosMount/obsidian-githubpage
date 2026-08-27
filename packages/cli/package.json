@@ -1,6 +1,6 @@
 {
   "name": "@obsidian-githubpage/cli",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "type": "module",
   "main": "dist/index.cjs",
   "license": "MIT",

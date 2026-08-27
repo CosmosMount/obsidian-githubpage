@@ -1,7 +1,8 @@
 export const BUILTIN_RUNTIME = `(() => {
   const root = document.documentElement;
   const basePath = root.dataset.basePath || "";
-  const storedTheme = localStorage.getItem("githubpage-theme");
+  let storedTheme = "";
+  try { storedTheme = localStorage.getItem("githubpage-theme") || ""; } catch { /* storage is optional */ }
   if (storedTheme) root.dataset.theme = storedTheme;
 
   document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
@@ -18,19 +19,23 @@ export const BUILTIN_RUNTIME = `(() => {
     const panel = panelId ? document.getElementById(panelId) : null;
     if ((side !== "left" && side !== "right") || !(panel instanceof HTMLElement)) return;
     const storageKey = "githubpage-sidebar-" + side;
-    let collapsed = false;
-    try { collapsed = localStorage.getItem(storageKey) === "collapsed"; } catch { /* storage is optional */ }
+    let initialCollapsed = false;
+    try { initialCollapsed = localStorage.getItem(storageKey) === "collapsed"; } catch { /* storage is optional */ }
+    const layoutAttribute = side === "left" ? "data-left-collapsed" : "data-right-collapsed";
     const apply = (next) => {
-      collapsed = next;
+      const collapsed = Boolean(next);
       panel.classList.toggle("is-collapsed", collapsed);
-      layout.dataset[side + "Collapsed"] = String(collapsed);
+      layout.setAttribute(layoutAttribute, String(collapsed));
       control.setAttribute("aria-expanded", String(!collapsed));
       control.setAttribute("aria-label", (collapsed ? "展开" : "折叠") + (side === "left" ? "左侧目录" : "右侧目录"));
       control.textContent = collapsed ? "+" : "−";
     };
-    apply(collapsed);
-    control.addEventListener("click", () => {
-      apply(!collapsed);
+    apply(initialCollapsed);
+    control.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const collapsed = !panel.classList.contains("is-collapsed");
+      apply(collapsed);
       try { localStorage.setItem(storageKey, collapsed ? "collapsed" : "expanded"); } catch { /* storage is optional */ }
     });
   });
