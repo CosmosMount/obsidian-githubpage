@@ -107,8 +107,97 @@ export function renderMarkdown(
     return renderer.renderToken(tokens, index, options);
   };
 
-  const html = markdown.render(page.body);
+  const html = markdown.render(normalizeObsidianTableSpacing(page.body));
   return { html, headings, plainText: markdownToPlainText(page.body), diagnostics };
+}
+
+function normalizeObsidianTableSpacing(source: string): string {
+  const lineEnding = source.includes("\r\n") ? "\r\n" : "\n";
+  const lines = source.split(/\r?\n/);
+  const output: string[] = [];
+  let fence: { character: string; length: number } | undefined;
+
+  for (let index = 0; index < lines.length;) {
+    const line = lines[index] ?? "";
+    const marker = fenceMarker(line);
+    if (fence) {
+      output.push(line);
+      if (marker?.character === fence.character && marker.length >= fence.length) fence = undefined;
+      index += 1;
+      continue;
+    }
+    if (marker) {
+      fence = marker;
+      output.push(line);
+      index += 1;
+      continue;
+    }
+
+    const separatorIndex = adjacentNonBlankLine(lines, index + 1);
+    if (tableCellCount(line) >= 2 && separatorIndex !== undefined && isTableDelimiter(lines[separatorIndex] ?? "")) {
+      output.push(normalizeTableLine(line), normalizeTableLine(lines[separatorIndex] ?? ""));
+      let cursor = separatorIndex + 1;
+      while (cursor < lines.length) {
+        const rowIndex = adjacentNonBlankLine(lines, cursor);
+        if (rowIndex === undefined || tableCellCount(lines[rowIndex] ?? "") < 2) break;
+        output.push(normalizeTableLine(lines[rowIndex] ?? ""));
+        cursor = rowIndex + 1;
+      }
+      index = cursor;
+      continue;
+    }
+
+    output.push(line);
+    index += 1;
+  }
+
+  return output.join(lineEnding);
+}
+
+function adjacentNonBlankLine(lines: string[], index: number): number | undefined {
+  if (index >= lines.length) return undefined;
+  if ((lines[index] ?? "").trim()) return index;
+  const adjacent = index + 1;
+  return adjacent < lines.length && (lines[adjacent] ?? "").trim() ? adjacent : undefined;
+}
+
+function normalizeTableLine(line: string): string {
+  return line.replaceAll("\u00a0", " ");
+}
+
+function isTableDelimiter(line: string): boolean {
+  const cells = tableCells(line);
+  return cells.length >= 2 && cells.every((cell) => /^:?-+:?$/.test(cell.trim()));
+}
+
+function tableCellCount(line: string): number {
+  return tableCells(line).length;
+}
+
+function tableCells(line: string): string[] {
+  const trimmed = line.trim().replace(/^\|/, "").replace(/\|$/, "");
+  if (!trimmed) return [];
+  const cells: string[] = [];
+  let current = "";
+  let escaped = false;
+  for (const character of trimmed) {
+    if (character === "|" && !escaped) {
+      cells.push(current);
+      current = "";
+    } else {
+      current += character;
+    }
+    escaped = character === "\\" && !escaped;
+    if (character !== "\\") escaped = false;
+  }
+  cells.push(current);
+  return cells;
+}
+
+function fenceMarker(line: string): { character: string; length: number } | undefined {
+  const match = /^\s{0,3}(`{3,}|~{3,})/.exec(line);
+  const marker = match?.[1];
+  return marker ? { character: marker[0] ?? "", length: marker.length } : undefined;
 }
 
 function installWikilinks(

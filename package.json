@@ -1,6 +1,6 @@
 {
   "name": "obsidian-githubpage-monorepo",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "private": true,
   "type": "module",
   "packageManager": "npm@11.11.0",
