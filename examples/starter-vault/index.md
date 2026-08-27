@@ -2,7 +2,7 @@
 title: Obsidian GitHubPage 在线演示
 ---
 
-这个网站不是手工编写的 HTML。它来自一个普通 Obsidian Vault，由 npm 上公开的 `@obsidian-githubpage/cli@1.0.9` 在 GitHub Actions 中校验、构建并部署。
+这个网站不是手工编写的 HTML。它来自一个普通 Obsidian Vault，由 npm 上公开的 `@obsidian-githubpage/cli@1.0.10` 在 GitHub Actions 中校验、构建并部署。
 
 > [!success] 端到端验证站
 > 如果你正在阅读此页面，说明精确版本 CLI 安装、仓库主题加载、Obsidian Markdown 渲染、文件树导航、Pages artifact 和部署流程已经全部成功。
@@ -23,7 +23,7 @@ title: Obsidian GitHubPage 在线演示
 | --- | --- |
 | 编辑源 | 原生 Markdown 文件 |
 | 页面结构 | 真实文件夹与文件名 |
-| 渲染器 | `@obsidian-githubpage/cli@1.0.9` |
+| 渲染器 | `@obsidian-githubpage/cli@1.0.10` |
 | 主题 | Vault 内 `.githubpage/theme/` |
 | 部署 | GitHub Pages 自定义 Actions |
 
