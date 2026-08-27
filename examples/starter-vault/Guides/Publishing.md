@@ -84,8 +84,9 @@ jobs:
         env:
           ENGINE_VERSION: ${{ steps.renderer.outputs.version }}
         run: |
-          npx --yes "@obsidian-githubpage/cli@${ENGINE_VERSION}" validate --root .
-          npx --yes "@obsidian-githubpage/cli@${ENGINE_VERSION}" build --root . --output _site
+          npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "@obsidian-githubpage/cli@${ENGINE_VERSION}"
+          node node_modules/@obsidian-githubpage/cli/dist/index.cjs validate --root .
+          node node_modules/@obsidian-githubpage/cli/dist/index.cjs build --root . --output _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -112,8 +113,10 @@ jobs:
 ## 5. 发布前验证
 
 ```bash
-npx --yes "@obsidian-githubpage/cli@$(node -p "JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion")" validate --root .
-npx --yes "@obsidian-githubpage/cli@$(node -p "JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion")" build --root . --output _site
+ENGINE_VERSION=$(node -e "const fs=require('fs');console.log(JSON.parse(fs.readFileSync('.githubpage/site.json','utf8')).engineVersion)")
+npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "@obsidian-githubpage/cli@${ENGINE_VERSION}"
+node node_modules/@obsidian-githubpage/cli/dist/index.cjs validate --root .
+node node_modules/@obsidian-githubpage/cli/dist/index.cjs build --root . --output _site
 ```
 
 `validate` 会报告配置版本漂移、危险主题、失效或歧义链接及缺失资源。构建成功后 `_site/` 应包含 `index.html`、搜索索引、sitemap、主题资产和 `.nojekyll`。

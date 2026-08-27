@@ -33,8 +33,9 @@ jobs:
         env:
           ENGINE_VERSION: ${{ steps.renderer.outputs.version }}
         run: |
-          npx --yes "@obsidian-githubpage/cli@${ENGINE_VERSION}" validate --root .
-          npx --yes "@obsidian-githubpage/cli@${ENGINE_VERSION}" build --root . --output _site
+          npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "@obsidian-githubpage/cli@${ENGINE_VERSION}"
+          node node_modules/@obsidian-githubpage/cli/dist/index.cjs validate --root .
+          node node_modules/@obsidian-githubpage/cli/dist/index.cjs build --root . --output _site
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
