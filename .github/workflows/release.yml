@@ -38,8 +38,13 @@ jobs:
           RELEASE_VERSION: ${{ github.ref_name }}
         working-directory: examples/starter-vault
         run: |
-          npm exec --yes --package="@obsidian-githubpage/cli@${RELEASE_VERSION}" -- obsidian-githubpage validate --root .
-          npm exec --yes --package="@obsidian-githubpage/cli@${RELEASE_VERSION}" -- obsidian-githubpage build --root . --output _site
+          for attempt in $(seq 1 12); do
+            if [ "$(npm view "@obsidian-githubpage/cli@${RELEASE_VERSION}" version 2>/dev/null)" = "${RELEASE_VERSION}" ]; then break; fi
+            if [ "${attempt}" = "12" ]; then echo "Published CLI was not visible in npm registry" >&2; exit 1; fi
+            sleep 5
+          done
+          npx --yes "@obsidian-githubpage/cli@${RELEASE_VERSION}" validate --root .
+          npx --yes "@obsidian-githubpage/cli@${RELEASE_VERSION}" build --root . --output _site
       - name: Package Starter Vault download
         run: |
           cd examples/starter-vault

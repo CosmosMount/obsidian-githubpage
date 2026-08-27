@@ -82,8 +82,8 @@ jobs:
         env:
           ENGINE_VERSION: ${{ steps.renderer.outputs.version }}
         run: |
-          npm exec --yes --package="@obsidian-githubpage/cli@${ENGINE_VERSION}" -- obsidian-githubpage validate --root .
-          npm exec --yes --package="@obsidian-githubpage/cli@${ENGINE_VERSION}" -- obsidian-githubpage build --root . --output _site
+          npx --yes "@obsidian-githubpage/cli@${ENGINE_VERSION}" validate --root .
+          npx --yes "@obsidian-githubpage/cli@${ENGINE_VERSION}" build --root . --output _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -110,8 +110,8 @@ jobs:
 ## 5. 发布前验证
 
 ```bash
-npm exec --yes --package="@obsidian-githubpage/cli@$(node -p "JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion")" -- obsidian-githubpage validate --root .
-npm exec --yes --package="@obsidian-githubpage/cli@$(node -p "JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion")" -- obsidian-githubpage build --root . --output _site
+npx --yes "@obsidian-githubpage/cli@$(node -p "JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion")" validate --root .
+npx --yes "@obsidian-githubpage/cli@$(node -p "JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion")" build --root . --output _site
 ```
 
 `validate` 会报告配置版本漂移、危险主题、失效或歧义链接及缺失资源。构建成功后 `_site/` 应包含 `index.html`、搜索索引、sitemap、主题资产和 `.nojekyll`。
