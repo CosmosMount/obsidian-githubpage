@@ -10,6 +10,31 @@ export const BUILTIN_RUNTIME = `(() => {
     localStorage.setItem("githubpage-theme", next);
   });
 
+  const layout = document.querySelector(".site-layout");
+  document.querySelectorAll("[data-sidebar-toggle]").forEach((control) => {
+    if (!(control instanceof HTMLButtonElement) || !(layout instanceof HTMLElement)) return;
+    const side = control.dataset.sidebarToggle;
+    const panelId = control.getAttribute("aria-controls");
+    const panel = panelId ? document.getElementById(panelId) : null;
+    if ((side !== "left" && side !== "right") || !(panel instanceof HTMLElement)) return;
+    const storageKey = "githubpage-sidebar-" + side;
+    let collapsed = false;
+    try { collapsed = localStorage.getItem(storageKey) === "collapsed"; } catch { /* storage is optional */ }
+    const apply = (next: boolean) => {
+      collapsed = next;
+      panel.classList.toggle("is-collapsed", collapsed);
+      layout.dataset[side + "Collapsed"] = String(collapsed);
+      control.setAttribute("aria-expanded", String(!collapsed));
+      control.setAttribute("aria-label", (collapsed ? "展开" : "折叠") + (side === "left" ? "左侧目录" : "右侧目录"));
+      control.textContent = collapsed ? "+" : "−";
+    };
+    apply(collapsed);
+    control.addEventListener("click", () => {
+      apply(!collapsed);
+      try { localStorage.setItem(storageKey, collapsed ? "collapsed" : "expanded"); } catch { /* storage is optional */ }
+    });
+  });
+
   const search = document.querySelector("[data-site-search]");
   const results = document.querySelector("[data-search-results]");
   if (search instanceof HTMLInputElement && results instanceof HTMLElement) {

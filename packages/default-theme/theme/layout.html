@@ -8,9 +8,21 @@
     <div class="site-actions">{{{search}}}{{{darkMode}}}</div>
   </header>
   <div class="site-layout">
-    <aside class="site-sidebar">{{{navigation}}}</aside>
+    <aside id="site-sidebar" class="site-sidebar" data-sidebar-panel="left">
+      <div class="sidebar-header">
+        <span class="sidebar-title">目录</span>
+        <button type="button" class="sidebar-toggle" data-sidebar-toggle="left" aria-expanded="true" aria-label="折叠左侧目录" aria-controls="site-sidebar">−</button>
+      </div>
+      {{{navigation}}}
+    </aside>
     <main class="site-main">{{{breadcrumbs}}}{{{content}}}</main>
-    <aside class="site-toc">{{{tableOfContents}}}</aside>
+    <aside id="site-toc" class="site-toc" data-sidebar-panel="right">
+      <div class="sidebar-header">
+        <span class="sidebar-title">本页目录</span>
+        <button type="button" class="sidebar-toggle" data-sidebar-toggle="right" aria-expanded="true" aria-label="折叠右侧目录" aria-controls="site-toc">−</button>
+      </div>
+      {{{tableOfContents}}}
+    </aside>
   </div>
 {{{runtime}}}
 </body>

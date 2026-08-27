@@ -351,7 +351,8 @@ function installMath(markdown: MarkdownItInstance, diagnostics: BuildDiagnostic[
 
 function renderMath(source: string, displayMode: boolean, diagnostics: BuildDiagnostic[], sourcePath: string): string {
   try {
-    return katex.renderToString(source, { displayMode, output: "mathml", throwOnError: true, strict: "warn" });
+    const rendered = katex.renderToString(source, { displayMode, output: "mathml", throwOnError: true, strict: "warn" });
+    return `<span class="math-scroll${displayMode ? " math-display" : ""}">${rendered}</span>`;
   } catch (error) {
     diagnostics.push({
       severity: "error",
