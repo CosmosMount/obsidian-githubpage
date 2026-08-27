@@ -5,7 +5,7 @@ title: Obsidian GitHubPage 在线演示
 这个网站不是手工编写的 HTML。它来自一个普通 Obsidian Vault，由 npm 上公开的 `@obsidian-githubpage/cli@1.0.17` 在 GitHub Actions 中校验、构建并部署。
 
 > [!tip] 阅读体验
-> 左侧文件树和右侧本页目录都可以独立折叠；右侧目录采用无序号的 Notion 风格链接，并用缩进和字号体现 H2/H3/H4 层级；长数学公式会在自己的容器内横向滚动，不会撑破正文布局。
+> 左侧文件树和右侧本页目录都可以独立折叠；右侧目录采用无序号的 Notion 风格链接，并用明显缩进和层级线体现 H2/H3/H4 层级；长数学公式会在自己的容器内横向滚动，不会撑破正文布局。
 
 > [!success] 端到端验证站
 > 如果你正在阅读此页面，说明精确版本 CLI 安装、仓库主题加载、Obsidian Markdown 渲染、文件树导航、Pages artifact 和部署流程已经全部成功。

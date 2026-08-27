@@ -11,6 +11,16 @@ title: Markdown 语法演示
 > [!note] Obsidian Callout
 > Callout 在 Markdown 中保持原生写法，由共享渲染核心转换为网站组件。
 
+## 目录层级
+
+右侧“本页目录”隐藏序号，并用缩进表示标题层级：
+
+### H3 子标题
+
+#### H4 细节标题
+
+在默认主题中，H2、H3、H4 链接字号保持一致，H3 和 H4 通过更明显的左缩进与层级线区分。
+
 ## GFM 表格和任务
 
 | 语法 | v1 状态 |
@@ -35,6 +45,8 @@ const localAndPages = "one renderer";
 $$
 \int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
 $$
+
+如果公式宽度超过正文区域，滚动条只出现在公式容器内，正文和两侧目录不会被撑宽。
 
 脚注也会进入页面与搜索文本。[^contract]
 

@@ -15,7 +15,8 @@ Obsidian GitHubPage 是一个桌面端 Obsidian 插件：将 GitHub Pages 仓库
 - 共享的纯 TypeScript 渲染核心，同时供插件预览和构建 CLI 使用。
 - 仓库内 `.githubpage/site.json` 与 `.githubpage/theme/` 配置、布局、CSS 和本地资源。
 - Markdown、wikilink、图片嵌入、Callout、任务列表、GFM 表格、脚注、代码块和数学公式。
-- 与真实文件夹/文件名一致的左侧树形导航、漂亮 URL、面包屑、目录、搜索和暗色模式。
+- 与真实文件夹/文件名一致的左侧树形导航、漂亮 URL、面包屑、Notion 风格目录、搜索和暗色模式。
+- 左右目录栏可独立折叠；右侧目录隐藏序号，并用 H2/H3/H4 的 0、1.25rem、2.5rem 左缩进表示标题层级；长数学公式只在自身容器内横向滚动。
 - 仅监听 `127.0.0.1` 的内存预览，使用随机会话 Cookie、CSP 和沙箱 iframe。
 - 保存后防抖重建；内容不变的页面从构建缓存复用，结构或主题变化时自动失效。
 - 系统 Git 状态、选择暂存、提交、任务分支、快进拉取、推送、同步、合并主分支、安全中止和 PR 网页跳转。
@@ -23,12 +24,16 @@ Obsidian GitHubPage 是一个桌面端 Obsidian 插件：将 GitHub Pages 仓库
 
 ## 使用方式
 
-1. 安装并启用本插件一次。
+1. 从 [最新 Release](https://github.com/CosmosMount/obsidian-githubpage/releases/latest) 下载 `main.js`、`manifest.json`、`styles.css`，放入 Vault 的 `.obsidian/plugins/obsidian-githubpage/`，然后启用 **GitHubPage**。升级文件后重启 Obsidian，或禁用再重新启用插件。
 2. 如果已有兼容仓库，直接克隆它并将仓库根目录作为 Obsidian Vault 打开；如果是空 Vault，可执行 **GitHubPage: Initialize Starter Vault from GitHub**。已有笔记的 Vault 会自动使用精简模式，只写入 `.githubpage/` 和 Pages Workflow。
 3. 也可以直接下载 [Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip)，解压到仓库根目录。
-4. 修改 `.githubpage/site.json` 中的站点地址（只需首次配置）。
-5. 执行 **GitHubPage: Open website preview**，在原生编辑器旁查看网站预览。
+4. 修改 `.githubpage/site.json` 中的站点地址（只需首次配置）。插件升级时会自动迁移兼容的 `engineVersion`，不需要手动改 JSON。
+5. 执行 **GitHubPage: Open website preview**，在原生编辑器旁查看网站预览；保存 Markdown 后，预览会防抖重建。
 6. 推荐在设置中填写作者分支名，通过命令面板创建 `author/<作者>/<任务>` 分支、提交并同步，然后打开 GitHub PR。若仓库策略允许，也可在设置中启用 **Allow direct main-branch push**，直接提交并推送主分支。
+
+### 预览中的目录和公式
+
+左侧目录显示 Vault 中真实的文件夹和文件名，文件夹可按层级展开；点击目录栏的 `−`/`+` 可以独立收起或恢复左右侧栏。右侧“本页目录”不显示序号，H2 为顶层，H3 向右缩进 `1.25rem`，H4 向右缩进 `2.5rem`，点击链接可跳转到标题锚点。超长行内公式和块公式都在公式容器内横向滚动，不会撑宽页面。
 
 插件不会保存 GitHub Token。HTTPS 使用 Git Credential Manager/系统密钥环，SSH 使用现有密钥。Vault 根目录必须同时是 Git 根目录，避免插件误操作上级仓库。
 
