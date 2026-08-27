@@ -16,7 +16,7 @@ styles.css
 
 ## 自动下载 Starter Vault
 
-打开一个空目录作为 Vault 后，执行 **GitHubPage: Initialize Starter Vault from GitHub**，或在插件设置中点击 **Download and initialize**。插件会从 [最新 Release 的 Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip) 下载并解压完整模板，包括 `.github/workflows/pages.yml`、`.githubpage/`、`package.json`、`package-lock.json` 和 `index.md`。
+打开一个空目录作为 Vault 后，执行 **GitHubPage: Initialize Starter Vault from GitHub**，或在插件设置中点击 **Download and initialize**。插件会从 [最新 Release 的 Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip) 下载完整模板。已有笔记的 Vault 会自动使用精简模式，只写入 `.github/workflows/pages.yml` 和 `.githubpage/`，不会混入示例文档。
 
 也可以直接下载 ZIP 并解压到仓库根目录。初始化不会覆盖已有文件，也不会自动创建 GitHub 远端仓库或提交 Git。
 
@@ -25,10 +25,9 @@ styles.css
 ```bash
 git clone git@github.com:YOUR_NAME/YOUR_REPOSITORY.git
 cd YOUR_REPOSITORY
-npm ci --ignore-scripts
 ```
 
-将仓库根目录作为 Obsidian Vault 打开。仓库根目录同时必须是 Git 根目录；插件会拒绝操作嵌套在其他 Git 仓库中的 Vault。
+将仓库根目录作为 Obsidian Vault 打开。仓库根目录同时必须是 Git 根目录；插件会拒绝操作嵌套在其他 Git 仓库中的 Vault。Pages Workflow 会按 `.githubpage/site.json` 自动下载匹配版本的 CLI，不需要 npm 锁文件。
 
 ## 本地预览
 

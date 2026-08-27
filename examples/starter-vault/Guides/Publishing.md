@@ -17,34 +17,21 @@ vault/
 │       ├── theme.json
 │       ├── layout.html
 │       └── styles.css
-├── package.json
-├── package-lock.json
 └── index.md
 ```
 
+不需要在 Vault 根目录创建 `package.json` 或 `package-lock.json`。插件的内置渲染器负责本地预览，Pages Workflow 会按 `site.json` 中的精确版本临时安装 CLI。
+
 ## 2. 固定渲染器版本
 
-`package.json` 使用精确版本，不使用 `^` 或 `latest`：
-
-```json
-{
-  "private": true,
-  "scripts": {
-    "validate": "obsidian-githubpage validate --root .",
-    "build": "obsidian-githubpage build --root . --output _site"
-  },
-  "devDependencies": {
-    "@obsidian-githubpage/cli": "1.0.4"
-  }
-}
-```
+`.githubpage/site.json` 保存站点配置和精确引擎版本：
 
 `.githubpage/site.json` 中的 `engineVersion` 必须与 CLI 和本地插件完全相同：
 
 ```json
 {
   "schemaVersion": 1,
-  "engineVersion": "1.0.4",
+  "engineVersion": "1.0.5",
   "site": {
     "title": "我的知识库",
     "baseUrl": "https://YOUR_NAME.github.io/YOUR_REPOSITORY",
@@ -53,6 +40,8 @@ vault/
   "theme": { "path": ".githubpage/theme" }
 }
 ```
+
+插件升级后会在 schema 兼容时自动把 `engineVersion` 迁移到插件版本；无需手动编辑 JSON。CLI 在 Pages 中仍按该版本严格构建，避免本地与线上漂移。
 
 项目 Pages 的 `baseUrl` 必须包含仓库子路径。用户主页仓库 `YOUR_NAME.github.io` 才部署在域名根路径。
 
@@ -86,10 +75,15 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run validate && npm run build
+      - name: Read the pinned renderer version
+        id: renderer
+        run: echo "version=$(node -p \"JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion\")" >> "$GITHUB_OUTPUT"
+      - name: Validate and build
+        env:
+          ENGINE_VERSION: ${{ steps.renderer.outputs.version }}
+        run: |
+          npm exec --yes --package="@obsidian-githubpage/cli@${ENGINE_VERSION}" -- obsidian-githubpage validate --root .
+          npm exec --yes --package="@obsidian-githubpage/cli@${ENGINE_VERSION}" -- obsidian-githubpage build --root . --output _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -116,9 +110,8 @@ jobs:
 ## 5. 发布前验证
 
 ```bash
-npm ci --ignore-scripts
-npm run validate
-npm run build
+npm exec --yes --package="@obsidian-githubpage/cli@$(node -p "JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion")" -- obsidian-githubpage validate --root .
+npm exec --yes --package="@obsidian-githubpage/cli@$(node -p "JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion")" -- obsidian-githubpage build --root . --output _site
 ```
 
 `validate` 会报告配置版本漂移、危险主题、失效或歧义链接及缺失资源。构建成功后 `_site/` 应包含 `index.html`、搜索索引、sitemap、主题资产和 `.nojekyll`。
@@ -135,4 +128,4 @@ npm run build
 
 站点仓库不需要 npm 发布 Token；公开 CLI 可以直接安装。继续阅读 [[Guides/Git-Collaboration|多人 Git 协作]]。
 
-如果不想手动创建上述目录，可以从 [最新 Release 下载 Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip)，或在已打开的空 Vault 中执行插件命令 **GitHubPage: Initialize Starter Vault from GitHub**。插件会检查目标文件冲突后再写入，不会覆盖已有笔记。
+如果不想手动创建上述目录，可以从 [最新 Release 下载 Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip)，或执行插件命令 **GitHubPage: Initialize Starter Vault from GitHub**。空 Vault 会安装完整示例；已有笔记的 Vault 只写入 `.githubpage/` 和 Pages Workflow，不会把示例笔记、npm 配置混入你的文档，也不会覆盖已有文件。

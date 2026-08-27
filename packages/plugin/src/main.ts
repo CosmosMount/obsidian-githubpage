@@ -17,7 +17,7 @@ import { ConflictModal, GitStatusModal, promptCommit, promptText } from "./modal
 import { GithubPagePreviewView, PREVIEW_VIEW_TYPE } from "./preview-view";
 import { PreviewServer } from "./preview-server";
 import { DEFAULT_SETTINGS, GithubPageSettingTab, sanitizeSlug, type GithubPageSettings } from "./settings";
-import { installStarterArchive, STARTER_ARCHIVE_URL } from "./starter-installer";
+import { installStarterArchive, STARTER_ARCHIVE_URL, vaultHasUserContent } from "./starter-installer";
 
 export default class GithubPagePlugin extends Plugin {
   settings: GithubPageSettings = { ...DEFAULT_SETTINGS };
@@ -43,7 +43,11 @@ export default class GithubPagePlugin extends Plugin {
       this.previewServer,
       (state, result) => this.handleBuildState(state, result?.renderedPages.length ?? 0, result?.reusedPages.length ?? 0),
     );
-    this.git = new GitService(this.vaultRoot, () => this.settings.mainBranch);
+    this.git = new GitService(
+      this.vaultRoot,
+      () => this.settings.mainBranch,
+      () => this.settings.allowDirectMainPush,
+    );
     this.registerView(PREVIEW_VIEW_TYPE, (leaf) => new GithubPagePreviewView(leaf, this.previewServer, this.requireCoordinator()));
     this.addSettingTab(new GithubPageSettingTab(this.app, this));
     this.statusElement = this.addStatusBarItem();
@@ -144,12 +148,17 @@ export default class GithubPagePlugin extends Plugin {
     try {
       new Notice("Downloading the GitHubPage Starter Vault…");
       const response = await requestUrl({ url: STARTER_ARCHIVE_URL, method: "GET" });
-      const fileCount = await installStarterArchive(this.vaultRoot, response.arrayBuffer);
+      const compact = await vaultHasUserContent(this.vaultRoot);
+      const fileCount = await installStarterArchive(this.vaultRoot, response.arrayBuffer, compact ? "compact" : "full");
       this.configWatcher?.close();
       this.configWatcher = undefined;
       this.startConfigWatcher();
       await this.coordinator?.buildNow();
-      new Notice(`Initialized GitHubPage Starter Vault (${fileCount} files).`);
+      new Notice(
+        compact
+          ? `Initialized GitHubPage support files (${fileCount} files). Existing notes were left untouched.`
+          : `Initialized GitHubPage Starter Vault (${fileCount} files).`,
+      );
     } catch (error) {
       new Notice(`GitHubPage initialization failed: ${messageFromUnknown(error)}`, 8000);
       console.error("[GitHubPage] Starter Vault initialization failed", error);

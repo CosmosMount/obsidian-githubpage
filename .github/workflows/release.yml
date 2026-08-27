@@ -32,15 +32,14 @@ jobs:
         env:
           RELEASE_VERSION: ${{ github.ref_name }}
         run: |
-          npm pkg set "devDependencies.@obsidian-githubpage/cli=${RELEASE_VERSION}" --prefix examples/starter-vault
           node -e "const fs=require('fs');const file='examples/starter-vault/.githubpage/site.json';const value=JSON.parse(fs.readFileSync(file,'utf8'));value.engineVersion=process.env.RELEASE_VERSION;fs.writeFileSync(file,JSON.stringify(value,null,2)+'\\n')"
-      - name: Install and validate published CLI in Starter Vault
+      - name: Validate Starter Vault with the published CLI
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
         working-directory: examples/starter-vault
         run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          npm ci --ignore-scripts --no-audit --no-fund
-          npm run validate
-          npm run build
+          npm exec --yes --package="@obsidian-githubpage/cli@${RELEASE_VERSION}" -- obsidian-githubpage validate --root .
+          npm exec --yes --package="@obsidian-githubpage/cli@${RELEASE_VERSION}" -- obsidian-githubpage build --root . --output _site
       - name: Package Starter Vault download
         run: |
           cd examples/starter-vault

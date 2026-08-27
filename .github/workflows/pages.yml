@@ -27,14 +27,17 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: examples/starter-vault/package-lock.json
-      - name: Install the exact published renderer
+      - name: Read the pinned renderer version
+        id: renderer
         working-directory: examples/starter-vault
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: echo "version=$(node -p \"JSON.parse(require('fs').readFileSync('.githubpage/site.json','utf8')).engineVersion\")" >> "$GITHUB_OUTPUT"
       - name: Validate and build the demo Vault
         working-directory: examples/starter-vault
-        run: npm run validate && npm run build
+        env:
+          ENGINE_VERSION: ${{ steps.renderer.outputs.version }}
+        run: |
+          npm exec --yes --package="@obsidian-githubpage/cli@${ENGINE_VERSION}" -- obsidian-githubpage validate --root .
+          npm exec --yes --package="@obsidian-githubpage/cli@${ENGINE_VERSION}" -- obsidian-githubpage build --root . --output _site
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5

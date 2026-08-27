@@ -57,12 +57,21 @@ function parseJson(raw: string, label: string): unknown {
   }
 }
 
-export function parseSiteConfig(raw: string): SiteConfig {
+export interface ParseSiteConfigOptions {
+  /**
+   * The desktop plugin may opt into a one-time migration when the schema is
+   * still compatible. The standalone CLI intentionally keeps the strict
+   * default so a Pages build can never silently drift from its pinned engine.
+   */
+  allowEngineVersionMismatch?: boolean;
+}
+
+export function parseSiteConfig(raw: string, options: ParseSiteConfigOptions = {}): SiteConfig {
   const result = siteConfigSchema.safeParse(parseJson(raw, "site.json"));
   if (!result.success) {
     throw new GithubPageError("INVALID_SITE_CONFIG", z.prettifyError(result.error));
   }
-  if (result.data.engineVersion !== ENGINE_VERSION) {
+  if (!options.allowEngineVersionMismatch && result.data.engineVersion !== ENGINE_VERSION) {
     throw new GithubPageError(
       "ENGINE_VERSION_MISMATCH",
       `site.json requires engine ${result.data.engineVersion}, but this build uses ${ENGINE_VERSION}`,

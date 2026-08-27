@@ -74,7 +74,9 @@ export class BuildCoordinator {
   private async performBuild(): Promise<void> {
     this.setState("building");
     try {
-      const project = await loadProject(this.vaultRoot);
+      // The plugin can transparently migrate a schema-compatible Vault after
+      // an engine update. The standalone CLI remains strict for CI parity.
+      const project = await loadProject(this.vaultRoot, { migrateEngineVersion: true });
       const result = buildSite(project, this.cache);
       this.cache = result.cache;
       this.result = result;

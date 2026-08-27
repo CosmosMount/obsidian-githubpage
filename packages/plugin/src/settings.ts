@@ -4,12 +4,14 @@ import type GithubPagePlugin from "./main";
 export interface GithubPageSettings {
   authorSlug: string;
   mainBranch: string;
+  allowDirectMainPush: boolean;
   rebuildDelayMs: number;
 }
 
 export const DEFAULT_SETTINGS: GithubPageSettings = {
   authorSlug: "",
   mainBranch: "main",
+  allowDirectMainPush: false,
   rebuildDelayMs: 350,
 };
 
@@ -37,11 +39,26 @@ export class GithubPageSettingTab extends PluginSettingTab {
 
     new Setting(this.containerEl)
       .setName("Main branch")
-      .setDesc("Protected publishing branch. The plugin refuses to commit directly to it.")
+      .setDesc(
+        this.plugin.settings.allowDirectMainPush
+          ? "Publishing branch. Direct commits and pushes are enabled below."
+          : "Protected publishing branch. The plugin refuses to commit directly to it.",
+      )
       .addText((text) =>
         text.setValue(this.plugin.settings.mainBranch).onChange(async (value) => {
           this.plugin.settings.mainBranch = value.trim() || "main";
           await this.plugin.saveSettings();
+        }),
+      );
+
+    new Setting(this.containerEl)
+      .setName("Allow direct main-branch push")
+      .setDesc("Risky: commits and pushes from the current main branch are allowed. Force-push is never used.")
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.allowDirectMainPush).onChange(async (value) => {
+          this.plugin.settings.allowDirectMainPush = value;
+          await this.plugin.saveSettings();
+          this.display();
         }),
       );
 
@@ -60,7 +77,7 @@ export class GithubPageSettingTab extends PluginSettingTab {
 
     new Setting(this.containerEl)
       .setName("Starter Vault")
-      .setDesc("Download the official template into an empty Vault. Existing files are never overwritten.")
+      .setDesc("Empty Vaults receive the full example; Vaults with notes receive only hidden site support files and Pages workflow. Existing files are never overwritten.")
       .addButton((button) =>
         button.setButtonText("Download and initialize").onClick(() => void this.plugin.initializeStarterVault()),
       );

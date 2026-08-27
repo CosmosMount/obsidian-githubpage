@@ -13,6 +13,7 @@ export type {
 } from "./types";
 export { GithubPageError, messageFromUnknown } from "./errors";
 export { parseSiteConfig, parseThemeManifest } from "./config";
+export type { ParseSiteConfigOptions } from "./config";
 export { buildSite } from "./build";
 export {
   basePathFromUrl,

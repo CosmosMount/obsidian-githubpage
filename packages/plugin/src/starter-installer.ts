@@ -8,13 +8,22 @@ export const STARTER_ARCHIVE_URL =
 const MAX_ARCHIVE_FILES = 200;
 const MAX_UNCOMPRESSED_BYTES = 20 * 1024 * 1024;
 
-interface StarterFile {
+export interface StarterFile {
   path: string;
   data: Uint8Array;
 }
 
-export async function installStarterArchive(vaultRoot: string, archive: ArrayBuffer): Promise<number> {
-  const files = parseStarterArchive(archive);
+export type StarterInstallMode = "full" | "compact";
+
+const COMPACT_PATHS = [".githubpage/", ".github/workflows/pages.yml"];
+const SUPPORT_DIRECTORIES = new Set([".git", ".obsidian", ".githubpage", ".github", "_site", "node_modules"]);
+
+export async function installStarterArchive(
+  vaultRoot: string,
+  archive: ArrayBuffer,
+  mode: StarterInstallMode = "full",
+): Promise<number> {
+  const files = selectStarterFiles(parseStarterArchive(archive), mode);
   if (files.length === 0) throw new Error("The Starter Vault archive is empty");
 
   const targets = files.map((file) => ({ ...file, target: safeTarget(vaultRoot, file.path) }));
@@ -44,6 +53,21 @@ export async function installStarterArchive(vaultRoot: string, archive: ArrayBuf
   } finally {
     await fs.rm(stagingRoot, { recursive: true, force: true });
   }
+}
+
+/**
+ * Returns true when a Vault already contains user-facing content. Obsidian's
+ * own metadata and GitHubPage support directories do not count, so a freshly
+ * cloned repository still receives the complete starter example.
+ */
+export async function vaultHasUserContent(vaultRoot: string): Promise<boolean> {
+  const entries = await fs.readdir(vaultRoot, { withFileTypes: true });
+  return entries.some((entry) => !SUPPORT_DIRECTORIES.has(entry.name) && !entry.name.startsWith(".githubpage-init-"));
+}
+
+export function selectStarterFiles(files: StarterFile[], mode: StarterInstallMode): StarterFile[] {
+  if (mode === "full") return files;
+  return files.filter((file) => COMPACT_PATHS.some((prefix) => file.path === prefix || file.path.startsWith(prefix)));
 }
 
 export function parseStarterArchive(archive: ArrayBuffer): StarterFile[] {

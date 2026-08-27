@@ -3,6 +3,7 @@ import path from "node:path";
 import picomatch from "picomatch";
 import {
   buildSite,
+  ENGINE_VERSION,
   GithubPageError,
   normalizeProjectPath,
   parseSiteConfig,
@@ -18,10 +19,28 @@ import {
 
 const CONFIG_PATH = ".githubpage/site.json";
 
-export async function loadProject(vaultRoot: string): Promise<ProjectInput> {
+export interface LoadProjectOptions {
+  /**
+   * Used by the desktop plugin to migrate a schema-compatible Vault after an
+   * engine update. The CLI leaves this disabled to keep CI builds strict.
+   */
+  migrateEngineVersion?: boolean;
+}
+
+export async function loadProject(vaultRoot: string, options: LoadProjectOptions = {}): Promise<ProjectInput> {
   const root = path.resolve(vaultRoot);
-  const configRaw = await readUtf8(resolveInside(root, CONFIG_PATH), "site configuration");
-  const config = parseSiteConfig(configRaw);
+  const configPath = resolveInside(root, CONFIG_PATH);
+  const configRaw = await readUtf8(configPath, "site configuration");
+  const config = parseSiteConfig(configRaw, { allowEngineVersionMismatch: options.migrateEngineVersion === true });
+  if (options.migrateEngineVersion && config.engineVersion !== ENGINE_VERSION) {
+    if (!isCompatibleEngineVersion(config.engineVersion)) {
+      throw new GithubPageError(
+        "ENGINE_VERSION_MISMATCH",
+        `site.json requires engine ${config.engineVersion}, but this build uses ${ENGINE_VERSION}`,
+      );
+    }
+    await migrateEngineVersion(configPath, configRaw, config.engineVersion);
+  }
   const theme = await loadTheme(root, config);
   const files = await loadContent(root, config);
   return { config, theme, files };
@@ -149,6 +168,36 @@ async function readUtf8(filePath: string, label: string): Promise<string> {
   } catch (error) {
     throw new GithubPageError("READ_FILE_FAILED", `Cannot read ${label}: ${filePath}`, error);
   }
+}
+
+async function migrateEngineVersion(filePath: string, raw: string, previousVersion: string): Promise<void> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw) as unknown;
+  } catch {
+    // parseSiteConfig already reports malformed JSON; this guard keeps the
+    // migration helper side-effect free if it is ever reused independently.
+    return;
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return;
+  const config = parsed as Record<string, unknown>;
+  if (config.schemaVersion !== 1 || config.engineVersion !== previousVersion) return;
+  config.engineVersion = ENGINE_VERSION;
+  await fs.writeFile(filePath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+}
+
+function isCompatibleEngineVersion(previousVersion: string): boolean {
+  const current = parseEngineVersion(ENGINE_VERSION);
+  const previous = parseEngineVersion(previousVersion);
+  if (!current || !previous || current.major !== previous.major) return false;
+  if (previous.minor !== current.minor) return previous.minor < current.minor;
+  return previous.patch <= current.patch;
+}
+
+function parseEngineVersion(value: string): { major: number; minor: number; patch: number } | undefined {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(value);
+  if (!match) return undefined;
+  return { major: Number(match[1]), minor: Number(match[2]), patch: Number(match[3]) };
 }
 
 function mediaTypeForPath(filePath: string): string {

@@ -26,4 +26,8 @@ origin/main
 
 每位协作者应在仓库级 Git 配置自己的 `user.name` 和 `user.email`。同步后统一触发一次内容重建，避免连续 Git 文件事件造成重复刷新。
 
+## 直接推送主分支（可选）
+
+如果仓库没有要求 Pull Request，可以在插件设置中启用 **Allow direct main-branch push**。启用后，当前位于 `main` 时可以使用提交、推送和同步命令；默认仍关闭此选项，且插件永远不会强制推送或自动覆盖远端提交。
+
 返回 [[Guides/index|指南总览]]。

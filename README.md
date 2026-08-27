@@ -24,15 +24,15 @@ Obsidian GitHubPage 是一个桌面端 Obsidian 插件：将 GitHub Pages 仓库
 ## 使用方式
 
 1. 安装并启用本插件一次。
-2. 如果已有兼容仓库，直接克隆它并将仓库根目录作为 Obsidian Vault 打开；如果是空 Vault，可执行 **GitHubPage: Initialize Starter Vault from GitHub**，插件会从最新 Release 下载并写入完整模板。
+2. 如果已有兼容仓库，直接克隆它并将仓库根目录作为 Obsidian Vault 打开；如果是空 Vault，可执行 **GitHubPage: Initialize Starter Vault from GitHub**。已有笔记的 Vault 会自动使用精简模式，只写入 `.githubpage/` 和 Pages Workflow。
 3. 也可以直接下载 [Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip)，解压到仓库根目录。
-4. 修改 `.githubpage/site.json` 中的站点地址。
+4. 修改 `.githubpage/site.json` 中的站点地址（只需首次配置）。
 5. 执行 **GitHubPage: Open website preview**，在原生编辑器旁查看网站预览。
-6. 在设置中填写作者分支名，通过命令面板创建 `author/<作者>/<任务>` 分支、提交并同步，然后打开 GitHub PR。
+6. 推荐在设置中填写作者分支名，通过命令面板创建 `author/<作者>/<任务>` 分支、提交并同步，然后打开 GitHub PR。若仓库策略允许，也可在设置中启用 **Allow direct main-branch push**，直接提交并推送主分支。
 
 插件不会保存 GitHub Token。HTTPS 使用 Git Credential Manager/系统密钥环，SSH 使用现有密钥。Vault 根目录必须同时是 Git 根目录，避免插件误操作上级仓库。
 
-初始化命令只在缺少 `.githubpage/site.json` 时执行，并且会在写入前检查所有目标文件；已有文件不会被覆盖。它不会替用户创建 GitHub 仓库、配置 `origin` 或提交 Git，仓库创建和权限仍由 GitHub/Git 完成。
+初始化命令只在缺少 `.githubpage/site.json` 时执行，并且会在写入前检查所有目标文件；已有文件不会被覆盖。空 Vault 安装完整示例，已有内容的 Vault 只安装站点支持文件。它不会替用户创建 GitHub 仓库、配置 `origin` 或提交 Git，仓库创建和权限仍由 GitHub/Git 完成。
 
 ## 仓库协议
 
@@ -51,7 +51,7 @@ vault/
 └── index.md
 ```
 
-`site.json` 的 `engineVersion` 必须与插件/CLI 精确一致。默认发布全部 Markdown；`draft: true` 或 `publish: false` 排除页面。排除只影响构建，敏感内容不得提交到 Git。
+`site.json` 的 `engineVersion` 必须与插件/CLI 精确一致。插件升级时会自动迁移 schema 兼容的版本；Pages Workflow 按该值临时安装 CLI，因此 Vault 不需要 `package.json` 或 `package-lock.json`。默认发布全部 Markdown；`draft: true` 或 `publish: false` 排除页面。排除只影响构建，敏感内容不得提交到 Git。
 
 主题布局可以使用以下 Handlebars 插槽：`head`、`runtime`、`siteTitle`、`pageTitle`、`language`、`basePath`、`navigation`、`breadcrumbs`、`tableOfContents`、`search`、`darkMode` 和 `content`。主题不允许脚本、事件属性、外部资源、主动 SVG、meta refresh 或 CSS `@import`；交互来自内置运行时。
 

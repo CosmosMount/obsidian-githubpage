@@ -36,6 +36,7 @@ export class GitService {
   constructor(
     private readonly repositoryRoot: string,
     private readonly mainBranch: () => string,
+    private readonly allowDirectMainPush: () => boolean = () => false,
   ) {}
 
   async checkRepository(): Promise<void> {
@@ -89,7 +90,7 @@ export class GitService {
   async commitSelected(paths: string[], message: string): Promise<void> {
     return this.exclusive(async () => {
       const branch = await this.getCurrentBranch();
-      if (branch === this.mainBranch()) {
+      if (branch === this.mainBranch() && !this.allowDirectMainPush()) {
         throw new GitCommandError([], 1, `Direct commits to ${branch} are disabled; create a collaboration branch first`);
       }
       const normalizedMessage = message.trim();
@@ -113,7 +114,9 @@ export class GitService {
     return this.exclusive(async () => {
       await this.requireCleanWorkingTree();
       await this.pullCurrentBranchUnsafe();
-      if ((await this.getCurrentBranch()) !== this.mainBranch()) await this.pushCurrentBranchUnsafe();
+      if ((await this.getCurrentBranch()) !== this.mainBranch() || this.allowDirectMainPush()) {
+        await this.pushCurrentBranchUnsafe();
+      }
     });
   }
 
@@ -147,6 +150,7 @@ export class GitService {
 
   async getPullRequestUrl(): Promise<string> {
     const [remote, branch] = await Promise.all([this.run(["remote", "get-url", "origin"]), this.getCurrentBranch()]);
+    if (branch === this.mainBranch()) throw new GitCommandError([], 1, "Already on the main branch; no pull request is needed");
     const repository = parseGithubRepository(remote.stdout.trim());
     if (!repository) throw new GitCommandError([], 1, "origin is not a supported github.com URL");
     return `https://github.com/${repository.owner}/${repository.name}/compare/${encodeURIComponent(this.mainBranch())}...${encodeURIComponent(branch)}?expand=1`;
@@ -165,7 +169,9 @@ export class GitService {
 
   private async pushCurrentBranchUnsafe(): Promise<void> {
     const branch = await this.getCurrentBranch();
-    if (branch === this.mainBranch()) throw new GitCommandError([], 1, `Direct pushes to ${branch} are disabled`);
+    if (branch === this.mainBranch() && !this.allowDirectMainPush()) {
+      throw new GitCommandError([], 1, `Direct pushes to ${branch} are disabled`);
+    }
     await this.run(["push", "--set-upstream", "origin", branch]);
   }
 
