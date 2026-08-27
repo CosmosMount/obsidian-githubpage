@@ -43,6 +43,8 @@ vault/
 
 插件升级后会在 schema 兼容时自动把 `engineVersion` 迁移到插件版本；无需手动编辑 JSON。CLI 在 Pages 中仍按该版本严格构建，避免本地与线上漂移。
 
+默认主题的右侧“本页目录”采用无序号的紧凑链接样式，左侧文件树靠近页面边缘；这些布局样式和 Markdown 内容一起从 Vault 发布。
+
 项目 Pages 的 `baseUrl` 必须包含仓库子路径。用户主页仓库 `YOUR_NAME.github.io` 才部署在域名根路径。
 
 ## 3. 添加 Pages Workflow
