@@ -13,15 +13,23 @@ import {
 import { messageFromUnknown } from "@obsidian-githubpage/core";
 import { BuildCoordinator, type BuildState } from "./build-coordinator";
 import { GitService } from "./git-service";
-import { ConflictModal, GitStatusModal, promptCommit, promptText } from "./modals";
+import { ConflictModal, GitStatusModal, PublishPanelModal, pickRepository, promptCommit, promptText } from "./modals";
 import { GithubPagePreviewView, PREVIEW_VIEW_TYPE } from "./preview-view";
 import { PreviewServer } from "./preview-server";
+import {
+  discoverGitRepositories,
+  normalizeRepositorySubfolder,
+  repositoryPathFromVaultPath,
+  repositoryVaultPrefix,
+  resolveRepositoryRoot,
+} from "./repository-layout";
 import { DEFAULT_SETTINGS, GithubPageSettingTab, sanitizeSlug, type GithubPageSettings } from "./settings";
 import { installStarterArchive, STARTER_ARCHIVE_URL, vaultHasUserContent } from "./starter-installer";
 
 export default class GithubPagePlugin extends Plugin {
   settings: GithubPageSettings = { ...DEFAULT_SETTINGS };
   private vaultRoot = "";
+  private repositoryRoot = "";
   private previewServer = new PreviewServer();
   private coordinator: BuildCoordinator | undefined;
   private git: GitService | undefined;
@@ -36,15 +44,28 @@ export default class GithubPagePlugin extends Plugin {
       return;
     }
     this.vaultRoot = adapter.getBasePath();
+    try {
+      this.repositoryRoot = resolveRepositoryRoot(
+        this.vaultRoot,
+        this.settings.repositoryMode,
+        this.settings.repositorySubfolder,
+      );
+    } catch (error) {
+      this.repositoryRoot = this.vaultRoot;
+      this.settings.repositoryMode = "vault";
+      this.settings.repositorySubfolder = "";
+      new Notice(`Invalid saved repository location; using the Vault root: ${messageFromUnknown(error)}`, 8000);
+    }
     await this.previewServer.start();
     this.coordinator = new BuildCoordinator(
       this.vaultRoot,
+      () => this.repositoryRoot,
       this.settings,
       this.previewServer,
       (state, result) => this.handleBuildState(state, result?.renderedPages.length ?? 0, result?.reusedPages.length ?? 0),
     );
     this.git = new GitService(
-      this.vaultRoot,
+      () => this.repositoryRoot,
       () => this.settings.mainBranch,
       () => this.settings.allowDirectMainPush,
     );
@@ -93,7 +114,11 @@ export default class GithubPagePlugin extends Plugin {
 
   private registerCommands(): void {
     this.addRibbonIcon("globe-2", "Open GitHubPage preview", () => void this.openPreview());
+    this.addRibbonIcon("cloud-upload", "Open GitHubPage publishing", () => void this.openPublishPanel());
     this.addCommand({ id: "open-preview", name: "Open website preview", callback: () => void this.openPreview() });
+    this.addCommand({ id: "open-publish-panel", name: "Open publishing panel", callback: () => void this.openPublishPanel() });
+    this.addCommand({ id: "publish-updates", name: "Git: Review and publish updates", callback: () => void this.publishUpdates() });
+    this.addCommand({ id: "detect-repository", name: "Git: Detect repository inside Vault", callback: () => void this.detectAndConfigureRepository() });
     this.addCommand({
       id: "initialize-starter-vault",
       name: "Initialize Starter Vault from GitHub",
@@ -111,15 +136,15 @@ export default class GithubPagePlugin extends Plugin {
       callback: () => void this.createCollaborationBranch(),
     });
     this.addCommand({ id: "git-commit-selected", name: "Git: Commit selected changes", callback: () => void this.commitSelected() });
-    this.addCommand({ id: "git-pull", name: "Git: Pull current branch (fast-forward only)", callback: () => void this.runGitAction("Pulled current branch", () => this.requireGit().pullCurrentBranch()) });
-    this.addCommand({ id: "git-push", name: "Git: Push current branch", callback: () => void this.runGitAction("Pushed current branch", () => this.requireGit().pushCurrentBranch()) });
+    this.addCommand({ id: "git-pull", name: "Git: Pull current branch (fast-forward only)", callback: () => void this.pullRemote() });
+    this.addCommand({ id: "git-push", name: "Git: Push current branch", callback: () => void this.pushRemote() });
     this.addCommand({ id: "git-sync", name: "Git: Sync current branch", callback: () => void this.runGitAction("Synced current branch", () => this.requireGit().syncCurrentBranch()) });
     this.addCommand({ id: "git-update-from-main", name: "Git: Merge latest main into current branch", callback: () => void this.runGitAction("Updated from main", () => this.requireGit().updateFromMain()) });
     this.addCommand({ id: "git-open-pr", name: "Git: Open pull request in GitHub", callback: () => void this.openPullRequest() });
     this.addCommand({ id: "git-abort-operation", name: "Git: Abort merge, rebase, or cherry-pick", callback: () => void this.abortGitOperation() });
   }
 
-  private async openPreview(): Promise<void> {
+  async openPreview(): Promise<void> {
     await this.requireCompatible(async () => {
       if (!this.coordinator?.getResult()) await this.coordinator?.buildNow();
       const existing = this.app.workspace.getLeavesOfType(PREVIEW_VIEW_TYPE)[0];
@@ -136,7 +161,7 @@ export default class GithubPagePlugin extends Plugin {
   }
 
   async initializeStarterVault(): Promise<void> {
-    const siteConfigPath = path.join(this.vaultRoot, ".githubpage", "site.json");
+    const siteConfigPath = path.join(this.repositoryRoot, ".githubpage", "site.json");
     try {
       await fs.access(siteConfigPath);
       new Notice("This Vault already has a GitHubPage site configuration.");
@@ -148,16 +173,16 @@ export default class GithubPagePlugin extends Plugin {
     try {
       new Notice("Downloading the GitHubPage Starter Vault…");
       const response = await requestUrl({ url: STARTER_ARCHIVE_URL, method: "GET" });
-      const compact = await vaultHasUserContent(this.vaultRoot);
-      const fileCount = await installStarterArchive(this.vaultRoot, response.arrayBuffer, compact ? "compact" : "full");
+      const compact = await vaultHasUserContent(this.repositoryRoot);
+      const fileCount = await installStarterArchive(this.repositoryRoot, response.arrayBuffer, compact ? "compact" : "full");
       this.configWatcher?.close();
       this.configWatcher = undefined;
       this.startConfigWatcher();
       await this.coordinator?.buildNow();
       new Notice(
         compact
-          ? `Initialized GitHubPage support files (${fileCount} files). Existing notes were left untouched.`
-          : `Initialized GitHubPage Starter Vault (${fileCount} files).`,
+          ? `Initialized GitHubPage support files in ${this.getRepositoryDescription()} (${fileCount} files). Existing notes were left untouched.`
+          : `Initialized GitHubPage starter site in ${this.getRepositoryDescription()} (${fileCount} files).`,
       );
     } catch (error) {
       new Notice(`GitHubPage initialization failed: ${messageFromUnknown(error)}`, 8000);
@@ -165,7 +190,7 @@ export default class GithubPagePlugin extends Plugin {
     }
   }
 
-  private async showGitStatus(): Promise<void> {
+  async showGitStatus(): Promise<void> {
     await this.runGitAction(undefined, async () => {
       const git = this.requireGit();
       await git.checkRepository();
@@ -174,7 +199,121 @@ export default class GithubPagePlugin extends Plugin {
     }, false);
   }
 
-  private async createCollaborationBranch(): Promise<void> {
+  async openPublishPanel(): Promise<void> {
+    await this.runGitAction(
+      undefined,
+      async () => {
+        const git = this.requireGit();
+        const [branch, entries] = await Promise.all([git.getCurrentBranch(), git.getStatus()]);
+        new PublishPanelModal(
+          this.app,
+          { repository: this.getRepositoryDescription(), branch, changedFiles: entries.length },
+          {
+            publish: () => this.publishUpdates(),
+            showStatus: () => this.showGitStatus(),
+            pull: () => this.pullRemote(),
+            push: () => this.pushRemote(),
+            createBranch: () => this.createCollaborationBranch(),
+            openPullRequest: () => this.openPullRequest(),
+            rebuildPreview: () => this.rebuildPreview(),
+          },
+        ).open();
+      },
+      false,
+    );
+  }
+
+  async publishUpdates(): Promise<void> {
+    await this.runGitAction(
+      undefined,
+      async () => {
+        const git = this.requireGit();
+        const branch = await git.getCurrentBranch();
+        if (branch === this.settings.mainBranch && !this.settings.allowDirectMainPush) {
+          throw new Error(`Direct publishing from ${branch} is disabled. Create a collaboration branch first.`);
+        }
+        const entries = await git.getStatus();
+        if (entries.length > 0) {
+          const selection = await promptCommit(this.app, entries);
+          if (!selection) return;
+          await git.commitSelected(selection.paths, selection.message);
+        }
+        const remainingChanges = await git.getStatus();
+        if (remainingChanges.length === 0) await git.syncCurrentBranch();
+        else await git.pushCurrentBranch();
+        await this.coordinator?.buildNow();
+        if (remainingChanges.length > 0) {
+          new Notice(`Published selected updates. ${remainingChanges.length} unselected local change(s) remain; remote pull was skipped safely.`, 7000);
+        } else {
+          new Notice(entries.length > 0 ? "Committed and published selected updates." : "Local branch is synchronized with the remote.");
+        }
+      },
+      false,
+    );
+  }
+
+  async pullRemote(): Promise<void> {
+    await this.runGitAction("Pulled current branch", () => this.requireGit().pullCurrentBranch());
+  }
+
+  async pushRemote(): Promise<void> {
+    await this.runGitAction("Pushed current branch", () => this.requireGit().pushCurrentBranch());
+  }
+
+  async rebuildPreview(): Promise<void> {
+    await this.requireCompatible(async () => this.requireCoordinator().buildNow());
+  }
+
+  async detectAndConfigureRepository(): Promise<void> {
+    try {
+      const repositories = await discoverGitRepositories(this.vaultRoot);
+      if (repositories.length === 0) {
+        new Notice("No Git repository was found in the Vault root or its first three folder levels.", 7000);
+        return;
+      }
+      const selected = repositories.length === 1 ? repositories[0] : await pickRepository(this.app, repositories);
+      if (!selected) return;
+      await this.applyRepositorySettings(selected.mode, selected.subfolder);
+    } catch (error) {
+      new Notice(`Repository detection failed: ${messageFromUnknown(error)}`, 8000);
+      console.error("[GitHubPage] Repository detection failed", error);
+    }
+  }
+
+  async applyRepositorySettings(
+    mode = this.settings.repositoryMode,
+    rawSubfolder = this.settings.repositorySubfolder,
+  ): Promise<void> {
+    try {
+      const subfolder =
+        mode === "subfolder"
+          ? normalizeRepositorySubfolder(rawSubfolder)
+          : "";
+      const nextRoot = resolveRepositoryRoot(this.vaultRoot, mode, subfolder);
+      const stat = await fs.stat(nextRoot);
+      if (!stat.isDirectory()) throw new Error("The configured repository location is not a folder");
+      await new GitService(nextRoot, () => this.settings.mainBranch).checkRepositoryRoot();
+      this.settings.repositoryMode = mode;
+      this.settings.repositorySubfolder = subfolder;
+      this.repositoryRoot = nextRoot;
+      await this.saveSettings();
+      await this.reconfigureRepository();
+      new Notice(`Using Git repository: ${this.getRepositoryDescription()}`);
+    } catch (error) {
+      new Notice(`Cannot apply repository location: ${messageFromUnknown(error)}`, 8000);
+      console.error("[GitHubPage] Invalid repository location", error);
+    }
+  }
+
+  getRepositoryDescription(): string {
+    try {
+      return repositoryVaultPrefix(this.vaultRoot, this.repositoryRoot) || "Vault root";
+    } catch {
+      return "Vault root";
+    }
+  }
+
+  async createCollaborationBranch(): Promise<void> {
     let author = sanitizeSlug(this.settings.authorSlug);
     if (!author) {
       const input = await promptText(this.app, "Author branch name", "alice");
@@ -207,7 +346,7 @@ export default class GithubPagePlugin extends Plugin {
     });
   }
 
-  private async openPullRequest(): Promise<void> {
+  async openPullRequest(): Promise<void> {
     await this.runGitAction(undefined, async () => {
       const url = await this.requireGit().getPullRequestUrl();
       window.open(url, "_blank", "noopener,noreferrer");
@@ -229,7 +368,9 @@ export default class GithubPagePlugin extends Plugin {
       if (successMessage) new Notice(successMessage);
     } catch (error) {
       const conflicts = await this.git?.getConflictedPaths().catch(() => []);
-      if (conflicts && conflicts.length > 0) new ConflictModal(this.app, conflicts).open();
+      if (conflicts && conflicts.length > 0) {
+        new ConflictModal(this.app, conflicts, repositoryVaultPrefix(this.vaultRoot, this.repositoryRoot)).open();
+      }
       new Notice(`GitHubPage Git: ${messageFromUnknown(error)}`, 8000);
       console.error("[GitHubPage] Git operation failed", error);
     }
@@ -237,7 +378,7 @@ export default class GithubPagePlugin extends Plugin {
 
   private async requireCompatible(action: () => Promise<void>): Promise<void> {
     if (!(await this.isCompatibleVault())) {
-      new Notice("This Vault has no .githubpage/site.json. Open a compatible cloned repository.", 7000);
+      new Notice("The active repository has no .githubpage/site.json. Initialize it or choose another repository.", 7000);
       return;
     }
     await action();
@@ -245,7 +386,7 @@ export default class GithubPagePlugin extends Plugin {
 
   private async isCompatibleVault(): Promise<boolean> {
     try {
-      await fs.access(path.join(this.vaultRoot, ".githubpage", "site.json"));
+      await fs.access(path.join(this.repositoryRoot, ".githubpage", "site.json"));
       return true;
     } catch {
       return false;
@@ -253,7 +394,7 @@ export default class GithubPagePlugin extends Plugin {
   }
 
   private startConfigWatcher(): void {
-    const directory = path.join(this.vaultRoot, ".githubpage");
+    const directory = path.join(this.repositoryRoot, ".githubpage");
     try {
       this.configWatcher = watch(directory, { recursive: true }, () => this.coordinator?.schedule());
       this.configWatcher.on("error", (error) => console.warn("[GitHubPage] Theme watcher stopped", error));
@@ -263,7 +404,9 @@ export default class GithubPagePlugin extends Plugin {
   }
 
   private shouldRebuildFor(vaultPath: string): boolean {
-    const normalized = vaultPath.replaceAll("\\", "/");
+    const repositoryPath = repositoryPathFromVaultPath(this.vaultRoot, this.repositoryRoot, vaultPath);
+    if (repositoryPath === undefined) return false;
+    const normalized = repositoryPath.replaceAll("\\", "/");
     if (normalized.startsWith(".obsidian/") || normalized.startsWith(".git/") || normalized.startsWith("_site/")) return false;
     const extension = path.posix.extname(normalized).toLocaleLowerCase("en");
     const assets = this.coordinator?.getConfig()?.content.assetExtensions ?? [];
@@ -274,6 +417,14 @@ export default class GithubPagePlugin extends Plugin {
     const detail = state === "ready" ? ` · ${rendered} rendered, ${reused} reused` : "";
     this.statusElement?.setText(`GitHubPage: ${state}${detail}`);
     this.forEachPreview((view) => view.updateBuildState(state));
+  }
+
+  private async reconfigureRepository(): Promise<void> {
+    this.coordinator?.reset();
+    this.configWatcher?.close();
+    this.configWatcher = undefined;
+    this.startConfigWatcher();
+    if (await this.isCompatibleVault()) await this.coordinator?.buildNow();
   }
 
   private forEachPreview(action: (view: GithubPagePreviewView) => void): void {

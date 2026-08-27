@@ -39,3 +39,15 @@
   font-family: var(--font-monospace);
   font-size: var(--font-ui-small);
 }
+
+.githubpage-publish-summary {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-secondary);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}

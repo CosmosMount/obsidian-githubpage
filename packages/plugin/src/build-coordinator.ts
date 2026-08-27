@@ -1,6 +1,7 @@
 import { buildSite, messageFromUnknown, sourcePathToRoute, type BuildCache, type BuildResult, type SiteConfig } from "@obsidian-githubpage/core";
 import { formatDiagnostics, loadProject } from "@obsidian-githubpage/node-adapter";
 import { Notice, normalizePath } from "obsidian";
+import { repositoryPathFromVaultPath } from "./repository-layout";
 import type { GithubPageSettings } from "./settings";
 import type { PreviewServer } from "./preview-server";
 
@@ -17,6 +18,7 @@ export class BuildCoordinator {
 
   constructor(
     private readonly vaultRoot: string,
+    private readonly repositoryRoot: () => string,
     private readonly settings: GithubPageSettings,
     private readonly previewServer: PreviewServer,
     private readonly onStateChange: (state: BuildState, result?: BuildResult) => void,
@@ -52,9 +54,17 @@ export class BuildCoordinator {
     this.timer = undefined;
   }
 
+  reset(): void {
+    this.cache = undefined;
+    this.result = undefined;
+    this.config = undefined;
+  }
+
   getRouteForVaultPath(vaultPath: string): string {
     const contentRoot = this.config?.content.root ?? ".";
-    let relative = normalizePath(vaultPath);
+    const repositoryPath = repositoryPathFromVaultPath(this.vaultRoot, this.repositoryRoot(), vaultPath);
+    if (repositoryPath === undefined) return "/";
+    let relative = normalizePath(repositoryPath);
     if (contentRoot !== ".") {
       const prefix = `${normalizePath(contentRoot).replace(/\/$/, "")}/`;
       if (!relative.startsWith(prefix)) return "/";
@@ -76,7 +86,7 @@ export class BuildCoordinator {
     try {
       // The plugin can transparently migrate a schema-compatible Vault after
       // an engine update. The standalone CLI remains strict for CI parity.
-      const project = await loadProject(this.vaultRoot, { migrateEngineVersion: true });
+      const project = await loadProject(this.repositoryRoot(), { migrateEngineVersion: true });
       const result = buildSite(project, this.cache);
       this.cache = result.cache;
       this.result = result;

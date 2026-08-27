@@ -6,7 +6,7 @@ title: 发布到 GitHub Pages
 
 ## 1. 准备 Vault 仓库
 
-仓库根目录至少包含：
+插件支持整个 Vault 就是仓库，也支持 Vault 内的文件夹是仓库。无论采用哪种布局，设置中选中的仓库根目录至少包含：
 
 ```text
 vault/
@@ -31,7 +31,7 @@ vault/
 ```json
 {
   "schemaVersion": 1,
-  "engineVersion": "1.0.17",
+  "engineVersion": "1.1.0",
   "site": {
     "title": "我的知识库",
     "baseUrl": "https://YOUR_NAME.github.io/YOUR_REPOSITORY",
@@ -127,7 +127,9 @@ node node_modules/@obsidian-githubpage/cli/dist/index.cjs build --root . --outpu
 
 ## 6. 推送与验收
 
-推送到受保护的 `main` 后，Pages Workflow 会上传并部署静态 artifact。部署成功后至少检查：
+内容更新后，点击插件左侧功能区的云上传图标，或打开 **设置 → GitHubPage → Open publish panel**。选择 **Review and publish**，确认文件和提交说明；插件会提交、快进同步并推送。也可以在同一面板中分别执行状态检查、Pull、Push、打开 PR 和预览重建。
+
+推送到 `main` 后，Pages Workflow 会上传并部署静态 artifact；协作分支需先合并 PR 到 `main`。部署成功后至少检查：
 
 - 首页和多级导航能够打开。
 - 内部链接包含正确的仓库基础路径。

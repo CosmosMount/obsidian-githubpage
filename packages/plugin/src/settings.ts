@@ -1,7 +1,10 @@
 import { PluginSettingTab, Setting, type App } from "obsidian";
 import type GithubPagePlugin from "./main";
+import type { RepositoryMode } from "./repository-layout";
 
 export interface GithubPageSettings {
+  repositoryMode: RepositoryMode;
+  repositorySubfolder: string;
   authorSlug: string;
   mainBranch: string;
   allowDirectMainPush: boolean;
@@ -9,6 +12,8 @@ export interface GithubPageSettings {
 }
 
 export const DEFAULT_SETTINGS: GithubPageSettings = {
+  repositoryMode: "vault",
+  repositorySubfolder: "",
   authorSlug: "",
   mainBranch: "main",
   allowDirectMainPush: false,
@@ -16,13 +21,98 @@ export const DEFAULT_SETTINGS: GithubPageSettings = {
 };
 
 export class GithubPageSettingTab extends PluginSettingTab {
+  private repositoryMode: RepositoryMode;
+  private repositorySubfolder: string;
+
   constructor(app: App, private readonly plugin: GithubPagePlugin) {
     super(app, plugin);
+    this.repositoryMode = plugin.settings.repositoryMode;
+    this.repositorySubfolder = plugin.settings.repositorySubfolder;
   }
 
   display(): void {
     this.containerEl.empty();
     this.containerEl.createEl("h2", { text: "GitHubPage" });
+    this.containerEl.createEl("h3", { text: "Repository" });
+
+    new Setting(this.containerEl)
+      .setName("Repository location")
+      .setDesc("Choose whether the GitHub repository is the whole Vault or a folder inside it.")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("vault", "Current Vault")
+          .addOption("subfolder", "Folder inside current Vault")
+          .setValue(this.repositoryMode)
+          .onChange((value) => {
+            this.repositoryMode = value as RepositoryMode;
+            if (value === "vault") this.repositorySubfolder = "";
+            this.display();
+          }),
+      );
+
+    if (this.repositoryMode === "subfolder") {
+      new Setting(this.containerEl)
+        .setName("Repository folder")
+        .setDesc("Vault-relative folder containing .git and .githubpage, for example Sites/MyNotes.")
+        .addText((text) =>
+          text
+            .setPlaceholder("Sites/MyNotes")
+            .setValue(this.repositorySubfolder)
+            .onChange((value) => {
+              this.repositorySubfolder = value;
+            }),
+        );
+    }
+
+    new Setting(this.containerEl)
+      .setName("Active repository")
+      .setDesc(this.plugin.getRepositoryDescription())
+      .addButton((button) =>
+        button.setButtonText("Detect repositories").onClick(async () => {
+          await this.plugin.detectAndConfigureRepository();
+          this.repositoryMode = this.plugin.settings.repositoryMode;
+          this.repositorySubfolder = this.plugin.settings.repositorySubfolder;
+          this.display();
+        }),
+      )
+      .addButton((button) =>
+        button.setCta().setButtonText("Apply location").onClick(async () => {
+          await this.plugin.applyRepositorySettings(this.repositoryMode, this.repositorySubfolder);
+          this.repositoryMode = this.plugin.settings.repositoryMode;
+          this.repositorySubfolder = this.plugin.settings.repositorySubfolder;
+          this.display();
+        }),
+      );
+
+    this.containerEl.createEl("h3", { text: "Publishing" });
+
+    new Setting(this.containerEl)
+      .setName("Publish updates")
+      .setDesc("Review changed files, enter a commit message, receive remote updates, and push with one guided action.")
+      .addButton((button) =>
+        button.setCta().setButtonText("Open publish panel").onClick(() => void this.plugin.openPublishPanel()),
+      )
+      .addButton((button) => button.setButtonText("Show status").onClick(() => void this.plugin.showGitStatus()));
+
+    new Setting(this.containerEl)
+      .setName("Remote actions")
+      .setDesc("Use these separately when you only want to receive or send already committed changes.")
+      .addButton((button) => button.setButtonText("Pull").onClick(() => void this.plugin.pullRemote()))
+      .addButton((button) => button.setButtonText("Push").onClick(() => void this.plugin.pushRemote()));
+
+    new Setting(this.containerEl)
+      .setName("Collaboration")
+      .setDesc("Create an author branch before publishing, then open its GitHub pull request after pushing.")
+      .addButton((button) => button.setButtonText("Create branch").onClick(() => void this.plugin.createCollaborationBranch()))
+      .addButton((button) => button.setButtonText("Open pull request").onClick(() => void this.plugin.openPullRequest()));
+
+    new Setting(this.containerEl)
+      .setName("Local preview")
+      .setDesc("Rebuild or open the website preview. These actions do not publish to GitHub.")
+      .addButton((button) => button.setButtonText("Rebuild").onClick(() => void this.plugin.rebuildPreview()))
+      .addButton((button) => button.setButtonText("Open preview").onClick(() => void this.plugin.openPreview()));
+
+    this.containerEl.createEl("h3", { text: "Git behavior" });
 
     new Setting(this.containerEl)
       .setName("Author branch name")
@@ -75,9 +165,11 @@ export class GithubPageSettingTab extends PluginSettingTab {
         }),
       );
 
+    this.containerEl.createEl("h3", { text: "Site initialization" });
+
     new Setting(this.containerEl)
-      .setName("Starter Vault")
-      .setDesc("Empty Vaults receive the full example; Vaults with notes receive only hidden site support files and Pages workflow. Existing files are never overwritten.")
+      .setName("Starter site files")
+      .setDesc("Installs into the active repository. Empty repositories receive the full example; existing content receives only hidden site files and the Pages workflow. Existing files are never overwritten.")
       .addButton((button) =>
         button.setButtonText("Download and initialize").onClick(() => void this.plugin.initializeStarterVault()),
       );

@@ -32,23 +32,30 @@ export class GitCommandError extends Error {
 
 export class GitService {
   private operationQueue: Promise<unknown> = Promise.resolve();
+  private readonly repositoryRoot: () => string;
 
   constructor(
-    private readonly repositoryRoot: string,
+    repositoryRoot: string | (() => string),
     private readonly mainBranch: () => string,
     private readonly allowDirectMainPush: () => boolean = () => false,
-  ) {}
+  ) {
+    this.repositoryRoot = typeof repositoryRoot === "function" ? repositoryRoot : () => repositoryRoot;
+  }
 
   async checkRepository(): Promise<void> {
-    await this.run(["--version"]);
-    const inside = await this.run(["rev-parse", "--is-inside-work-tree"]);
-    if (inside.stdout.trim() !== "true") throw new GitCommandError([], 1, "The Vault root is not a Git working tree");
-    const prefix = (await this.run(["rev-parse", "--show-prefix"])).stdout.trim();
-    if (prefix) {
-      throw new GitCommandError([], 1, "The Vault root must also be the Git repository root");
-    }
+    await this.checkRepositoryRoot();
     await this.run(["remote", "get-url", "origin"]);
     await this.getIdentity();
+  }
+
+  async checkRepositoryRoot(): Promise<void> {
+    await this.run(["--version"]);
+    const inside = await this.run(["rev-parse", "--is-inside-work-tree"]);
+    if (inside.stdout.trim() !== "true") throw new GitCommandError([], 1, "The configured folder is not a Git working tree");
+    const prefix = (await this.run(["rev-parse", "--show-prefix"])).stdout.trim();
+    if (prefix) {
+      throw new GitCommandError([], 1, "The configured folder must also be the Git repository root");
+    }
   }
 
   async getIdentity(): Promise<GitIdentity> {
@@ -78,11 +85,15 @@ export class GitService {
     return this.exclusive(async () => {
       validateRefPart(authorSlug, "author name");
       validateRefPart(taskSlug, "task name");
-      await this.requireCleanWorkingTree();
+      const [currentBranch, status] = await Promise.all([this.getCurrentBranch(), this.getStatus()]);
+      if (status.length > 0 && currentBranch !== this.mainBranch()) {
+        throw new GitCommandError([], 1, "Commit current changes before creating another collaboration branch");
+      }
       await this.run(["fetch", "origin", this.mainBranch()]);
       const branch = `author/${authorSlug}/${taskSlug}`;
       await this.run(["check-ref-format", "--branch", branch]);
-      await this.run(["switch", "-c", branch, `origin/${this.mainBranch()}`]);
+      if (status.length > 0) await this.run(["switch", "-c", branch]);
+      else await this.run(["switch", "-c", branch, `origin/${this.mainBranch()}`]);
       return branch;
     });
   }
@@ -199,7 +210,7 @@ export class GitService {
   private run(args: string[], allowFailure = false): Promise<GitResult> {
     return new Promise((resolve, reject) => {
       const child = spawn("git", args, {
-        cwd: this.repositoryRoot,
+        cwd: this.repositoryRoot(),
         shell: false,
         windowsHide: true,
         env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" },
