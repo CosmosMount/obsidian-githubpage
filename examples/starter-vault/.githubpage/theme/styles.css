@@ -22,7 +22,19 @@ img, video { max-width: 100%; height: auto; border-radius: .5rem; }
 .search-results a { padding: .4rem .5rem; text-decoration: none; }
 .theme-toggle { width: 2.25rem; height: 2.25rem; border: 1px solid var(--border); border-radius: .45rem; background: var(--surface); color: var(--text); cursor: pointer; }
 .site-layout { display: grid; grid-template-columns: var(--sidebar-width) minmax(0, var(--content-width)) minmax(190px, 240px); justify-content: center; gap: 2rem; padding: 1.5rem; }
+.site-layout[data-left-collapsed="true"] { grid-template-columns: 2.5rem minmax(0, var(--content-width)) minmax(190px, 240px); }
+.site-layout[data-right-collapsed="true"] { grid-template-columns: var(--sidebar-width) minmax(0, var(--content-width)) 2.5rem; }
+.site-layout[data-left-collapsed="true"][data-right-collapsed="true"] { grid-template-columns: 2.5rem minmax(0, var(--content-width)) 2.5rem; }
 .site-sidebar, .site-toc { position: sticky; top: 5rem; align-self: start; max-height: calc(100vh - 6rem); overflow: auto; }
+.sidebar-header { display: flex; align-items: center; justify-content: space-between; gap: .35rem; min-height: 2rem; margin-bottom: .35rem; color: var(--muted); font-size: .85rem; font-weight: 700; }
+.sidebar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-toggle { flex: 0 0 auto; width: 1.75rem; height: 1.75rem; padding: 0; border: 1px solid var(--border); border-radius: .35rem; background: var(--surface); color: var(--text); cursor: pointer; font: inherit; line-height: 1; }
+.sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.site-sidebar.is-collapsed, .site-toc.is-collapsed { overflow: visible; }
+.site-sidebar.is-collapsed > :not(.sidebar-header), .site-toc.is-collapsed > :not(.sidebar-header) { display: none; }
+.site-sidebar.is-collapsed .sidebar-header, .site-toc.is-collapsed .sidebar-header { justify-content: center; }
+.site-sidebar.is-collapsed .sidebar-title, .site-toc.is-collapsed .sidebar-title { display: none; }
+.site-sidebar.is-collapsed .sidebar-toggle, .site-toc.is-collapsed .sidebar-toggle { transform: rotate(180deg); }
 .site-main { min-width: 0; }
 .nav-tree, .nav-tree ul { margin: 0; padding-left: 1rem; list-style: none; }
 .nav-tree { padding-left: 0; }
@@ -38,6 +50,9 @@ img, video { max-width: 100%; height: auto; border-radius: .5rem; }
 .page-content :not(pre) > code { padding: .1rem .3rem; border-radius: .25rem; background: var(--code); }
 .page-content table { width: 100%; border-collapse: collapse; }
 .page-content th, .page-content td { padding: .45rem .6rem; border: 1px solid var(--border); text-align: left; }
+.page-content .math-scroll { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; }
+.page-content .math-scroll.math-display { display: block; width: 100%; padding-block: .15rem; }
+.page-content .math-scroll .katex-display { margin: 0; overflow: visible; }
 .page-content blockquote { margin-inline: 0; padding: .1rem 1rem; border-left: .25rem solid var(--border); color: var(--muted); }
 .page-content .callout { border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); border-left-width: .3rem; border-radius: .4rem; background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--text); }
 .callout-title { display: block; margin-block: .7rem .2rem; color: var(--accent); text-transform: capitalize; }
@@ -47,5 +62,5 @@ img, video { max-width: 100%; height: auto; border-radius: .5rem; }
 .toc-level-3 { margin-left: .65rem; }
 .toc-level-4 { margin-left: 1.3rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-@media (max-width: 1050px) { .site-layout { grid-template-columns: var(--sidebar-width) minmax(0, var(--content-width)); } .site-toc { display: none; } }
+@media (max-width: 1050px) { .site-layout, .site-layout[data-left-collapsed="true"], .site-layout[data-right-collapsed="true"], .site-layout[data-left-collapsed="true"][data-right-collapsed="true"] { grid-template-columns: var(--sidebar-width) minmax(0, var(--content-width)); } .site-toc { display: none; } }
 @media (max-width: 760px) { .site-header { position: static; } .site-layout { display: block; padding: 1rem; } .site-sidebar { position: static; max-height: none; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); } .site-search input { width: 11rem; } }
