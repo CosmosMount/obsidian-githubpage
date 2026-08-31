@@ -24,7 +24,7 @@ Obsidian GitHubPage 是一个桌面端 Obsidian 插件：既可以把整个 Vaul
 
 ## 使用方式
 
-1. 从 [最新 Release](https://github.com/CosmosMount/obsidian-githubpage/releases/latest) 下载 `main.js`、`manifest.json`、`styles.css`，放入 Vault 的 `.obsidian/plugins/obsidian-githubpage/`，然后启用 **GitHubPage**。升级文件后重启 Obsidian，或禁用再重新启用插件。
+1. 从 [最新 Release](https://github.com/CosmosMount/obsidian-githubpage/releases/latest) 下载 `main.js`、`manifest.json`、`styles.css`，放入 Vault 的 `.obsidian/plugins/github-page/`，然后启用 **GitHubPage**。升级文件后重启 Obsidian，或禁用再重新启用插件。
 2. 在 **设置 → GitHubPage → Repository location** 选择 **Current Vault** 或 **Folder inside current Vault**。也可以点击 **Detect repositories** 自动扫描 Vault 根及前三层文件夹中的 Git 仓库，再点击 **Apply location**。旧版本设置会继续默认使用整个 Vault。
 3. 如果当前仓库还没有站点文件，可执行 **GitHubPage: Initialize Starter Vault from GitHub**。已有内容的仓库会自动使用精简模式，只写入 `.githubpage/` 和 Pages Workflow。
 4. 也可以直接下载 [Starter Vault ZIP](https://github.com/CosmosMount/obsidian-githubpage/releases/latest/download/obsidian-githubpage-starter-vault.zip)，解压到所选仓库根目录。

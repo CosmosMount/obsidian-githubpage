@@ -12,7 +12,7 @@ manifest.json
 styles.css
 ```
 
-把它们放入 Vault 的 `.obsidian/plugins/obsidian-githubpage/`，然后在 Obsidian 的社区插件设置中启用 **GitHubPage**。v1 仅支持 Windows、macOS 和 Linux 桌面端。
+把它们放入 Vault 的 `.obsidian/plugins/github-page/`，然后在 Obsidian 的社区插件设置中启用 **GitHubPage**。v1 仅支持 Windows、macOS 和 Linux 桌面端。
 
 升级插件时仍只需替换这三个文件；替换后重启 Obsidian，或在社区插件设置中禁用再启用 GitHubPage。
 
