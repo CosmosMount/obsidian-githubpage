@@ -29,6 +29,7 @@ describe("Git collaboration service", () => {
     git(seed, "commit", "-m", "initial");
     git(seed, "remote", "add", "origin", remote);
     git(seed, "push", "-u", "origin", "main");
+    git(remote, "symbolic-ref", "HEAD", "refs/heads/main");
 
     git(base, "clone", remote, alice);
     configureIdentity(alice, "Alice", "alice@example.com");
