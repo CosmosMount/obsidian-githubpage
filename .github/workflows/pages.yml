@@ -27,22 +27,17 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - name: Read the pinned renderer version
-        id: renderer
-        working-directory: examples/starter-vault
+          package-manager-cache: false
+      - run: npm install --global npm@11.11.0
+      - run: npm ci --ignore-scripts
+      - name: Verify the demo renderer version
         run: |
-          VERSION=$(node -e "const fs=require('fs');console.log(JSON.parse(fs.readFileSync('.githubpage/site.json','utf8')).engineVersion)")
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          node -e "const fs=require('fs');const demo=JSON.parse(fs.readFileSync('examples/starter-vault/.githubpage/site.json','utf8')).engineVersion;const cli=JSON.parse(fs.readFileSync('packages/cli/package.json','utf8')).version;if(demo!==cli)throw new Error(`Demo engineVersion ${demo} does not match CLI version ${cli}`)"
+      - run: npm run build
       - name: Validate and build the demo Vault
-        working-directory: examples/starter-vault
-        env:
-          ENGINE_VERSION: ${{ steps.renderer.outputs.version }}
         run: |
-          CLI_DIR="${RUNNER_TEMP}/githubpage-cli"
-          mkdir -p "${CLI_DIR}"
-          npm install --prefix "${CLI_DIR}" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "@obsidian-githubpage/cli@${ENGINE_VERSION}"
-          node "${CLI_DIR}/node_modules/@obsidian-githubpage/cli/dist/index.cjs" validate --root .
-          node "${CLI_DIR}/node_modules/@obsidian-githubpage/cli/dist/index.cjs" build --root . --output _site
+          node packages/cli/dist/index.cjs validate --root examples/starter-vault
+          node packages/cli/dist/index.cjs build --root examples/starter-vault --output _site
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
