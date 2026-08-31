@@ -23,7 +23,7 @@ async function main(): Promise<void> {
     return;
   }
   if (options.command === "version") {
-    console.log(ENGINE_VERSION);
+    writeStdout(ENGINE_VERSION);
     return;
   }
   const root = path.resolve(options.root);
@@ -43,7 +43,7 @@ async function main(): Promise<void> {
   }
   const output = await writeBuildResult(root, options.output, result);
   if (!options.json) {
-    console.log(`Built ${result.renderedPages.length + result.reusedPages.length} pages to ${output}`);
+    writeStdout(`Built ${result.renderedPages.length + result.reusedPages.length} pages to ${output}`);
   }
 }
 
@@ -73,12 +73,12 @@ function requireValue(argumentsList: string[], index: number, option: string): s
 }
 
 function report(diagnostics: Awaited<ReturnType<typeof buildProject>>["diagnostics"], json: boolean): void {
-  if (json) console.log(JSON.stringify(diagnostics));
-  else if (diagnostics.length > 0) console.error(formatDiagnostics(diagnostics));
+  if (json) writeStdout(JSON.stringify(diagnostics));
+  else if (diagnostics.length > 0) writeStderr(formatDiagnostics(diagnostics));
 }
 
 function printUsage(): void {
-  console.log(`Obsidian GitHubPage ${ENGINE_VERSION}
+  writeStdout(`Obsidian GitHubPage ${ENGINE_VERSION}
 
 Usage:
   obsidian-githubpage build [--root <vault>] [--output <directory>] [--json]
@@ -86,7 +86,15 @@ Usage:
   obsidian-githubpage version`);
 }
 
+function writeStdout(value: string): void {
+  process.stdout.write(value + "\n");
+}
+
+function writeStderr(value: string): void {
+  process.stderr.write(value + "\n");
+}
+
 main().catch((error: unknown) => {
-  console.error(`ERROR ${messageFromUnknown(error)}`);
+  writeStderr(`ERROR ${messageFromUnknown(error)}`);
   process.exitCode = 1;
 });

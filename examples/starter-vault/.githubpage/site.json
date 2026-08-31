@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "engineVersion": "1.1.0",
+  "engineVersion": "1.1.1",
   "site": {
     "title": "Obsidian GitHubPage 演示与发布指南",
     "baseUrl": "https://cosmosmount.github.io/obsidian-githubpage",

@@ -1,6 +1,63 @@
-# Obsidian GitHubPage
+# GitHubPage
 
-Obsidian GitHubPage 是一个桌面端 Obsidian 插件：既可以把整个 Vault 作为 GitHub Pages 仓库，也可以选择 Vault 内的一个文件夹作为独立仓库；用户以 Obsidian 原生方式编写，并在 Obsidian 中预览由线上部署使用的同一渲染核心、同一主题和同一精确版本生成的网站。
+GitHubPage is a desktop-only Obsidian plugin for editing, previewing, and publishing a GitHub Pages website directly from a vault. The plugin and its standalone CLI share the same renderer, theme format, and exact engine version, so the local preview matches the site produced by GitHub Actions.
+
+[中文说明](#中文说明)
+
+## Features
+
+- Use either the whole vault or a folder inside the vault as the Git repository.
+- Preview the production renderer beside the native Obsidian editor.
+- Render Markdown, wikilinks, embeds, callouts, task lists, GFM tables, footnotes, code blocks, and math.
+- Rebuild changed pages automatically and reuse cached output for unchanged pages.
+- Review changed files, create commits and collaboration branches, pull with fast-forward only, push, and open GitHub pull requests.
+- Initialize a safe starter site without overwriting existing files.
+- Deploy the same renderer through GitHub Actions and the public npm CLI.
+
+## Requirements
+
+- Obsidian 1.7.2 or later on Windows, macOS, or Linux.
+- Git installed and available on the system path.
+- An existing Git repository whose root is the selected vault or vault subfolder.
+- A configured `origin` remote and Git identity for publishing actions.
+
+## Installation
+
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/CosmosMount/obsidian-githubpage/releases/latest).
+2. Place the files in `<vault-config-dir>/plugins/github-page/`. The default Obsidian configuration directory is `.obsidian`, but GitHubPage also supports a custom configuration directory.
+3. Reload Obsidian, enable **GitHubPage** under Community plugins, and open **Settings → GitHubPage**.
+4. Select the repository location, then use **Detect repositories** or **Apply location**.
+5. Run **GitHubPage: Initialize Starter Vault from GitHub** when the repository does not already contain `.githubpage/site.json`.
+
+## Basic usage
+
+Run **GitHubPage: Open website preview** to open the local website view. Saving a note rebuilds the preview but does not publish anything. To publish, open the cloud-upload ribbon action or **Open publish panel**, review the selected files, enter a commit message, and explicitly confirm the Git operation.
+
+Direct pushes to the configured main branch are disabled by default. The recommended workflow creates an `author/<name>/<task>` branch, pushes it, and opens a pull request. The optional direct-main setting never uses force-push.
+
+## Security, privacy, and permissions
+
+GitHubPage requires desktop capabilities because publishing a repository cannot be implemented entirely through the Obsidian Vault API.
+
+- **Filesystem access:** The plugin reads Markdown, site configuration, themes, assets, and Git metadata under the selected vault repository. Starter initialization and user-confirmed Git actions can write files in that repository. Repository paths and build output paths are validated to stay inside their configured roots.
+- **Process execution:** The plugin starts the locally installed `git` executable with an argument array and `shell: false`. It uses Git for status, branch, add, commit, fetch, fast-forward merge, push, and explicit abort operations. It does not execute repository-provided shell scripts.
+- **Network access:** Git communicates only with the repository remote configured by the user. Starter initialization downloads `obsidian-githubpage-starter-vault.zip` from this project's GitHub Releases. Opening a pull request launches a GitHub compare URL.
+- **Credentials:** The plugin does not request or store a GitHub token. HTTPS authentication is handled by the user's Git credential helper, and SSH authentication uses the user's existing SSH setup.
+- **Local preview:** The preview server binds only to `127.0.0.1`, uses an unguessable session URL, and renders inside a sandboxed iframe with a restrictive Content Security Policy.
+- **Data collection:** The plugin contains no telemetry, analytics, advertising, or external account requirement. No vault content is sent anywhere except through Git operations explicitly initiated by the user.
+
+GitHub Pages websites are commonly public. Build exclusions such as `draft: true` are publishing controls, not a confidentiality boundary; do not commit secrets or private notes to a public repository.
+
+## Links
+
+- [Live demo](https://cosmosmount.github.io/obsidian-githubpage/)
+- [Publishing guide](https://cosmosmount.github.io/obsidian-githubpage/Guides/Publishing/)
+- [Releases](https://github.com/CosmosMount/obsidian-githubpage/releases/latest)
+- [Security policy](SECURITY.md)
+
+## 中文说明
+
+GitHubPage 是一个桌面端 Obsidian 插件：既可以把整个 Vault 作为 GitHub Pages 仓库，也可以选择 Vault 内的一个文件夹作为独立仓库；用户以 Obsidian 原生方式编写，并在 Obsidian 中预览由线上部署使用的同一渲染核心、同一主题和同一精确版本生成的网站。
 
 ## 在线验证
 

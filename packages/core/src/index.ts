@@ -14,6 +14,8 @@ export type {
 export { GithubPageError, messageFromUnknown } from "./errors";
 export { parseSiteConfig, parseThemeManifest } from "./config";
 export type { ParseSiteConfigOptions } from "./config";
+export { parseFrontmatter } from "./frontmatter";
+export type { ParsedFrontmatter } from "./frontmatter";
 export { buildSite } from "./build";
 export {
   basePathFromUrl,

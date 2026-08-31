@@ -32,16 +32,15 @@ export class GithubPageSettingTab extends PluginSettingTab {
 
   display(): void {
     this.containerEl.empty();
-    this.containerEl.createEl("h2", { text: "GitHubPage" });
-    this.containerEl.createEl("h3", { text: "Repository" });
+    new Setting(this.containerEl).setName("Repository").setHeading();
 
     new Setting(this.containerEl)
       .setName("Repository location")
-      .setDesc("Choose whether the GitHub repository is the whole Vault or a folder inside it.")
+      .setDesc("Choose whether the GitHub repository is the whole vault or a folder inside it.")
       .addDropdown((dropdown) =>
         dropdown
-          .addOption("vault", "Current Vault")
-          .addOption("subfolder", "Folder inside current Vault")
+          .addOption("vault", "Current vault")
+          .addOption("subfolder", "Folder inside current vault")
           .setValue(this.repositoryMode)
           .onChange((value) => {
             this.repositoryMode = value as RepositoryMode;
@@ -84,7 +83,7 @@ export class GithubPageSettingTab extends PluginSettingTab {
         }),
       );
 
-    this.containerEl.createEl("h3", { text: "Publishing" });
+    new Setting(this.containerEl).setName("Publishing").setHeading();
 
     new Setting(this.containerEl)
       .setName("Publish updates")
@@ -112,14 +111,14 @@ export class GithubPageSettingTab extends PluginSettingTab {
       .addButton((button) => button.setButtonText("Rebuild").onClick(() => void this.plugin.rebuildPreview()))
       .addButton((button) => button.setButtonText("Open preview").onClick(() => void this.plugin.openPreview()));
 
-    this.containerEl.createEl("h3", { text: "Git behavior" });
+    new Setting(this.containerEl).setName("Git behavior").setHeading();
 
     new Setting(this.containerEl)
       .setName("Author branch name")
       .setDesc("Used in author/<name>/<task> collaboration branches. Letters, numbers, dash and underscore only.")
       .addText((text) =>
         text
-          .setPlaceholder("alice")
+          .setPlaceholder("Alice")
           .setValue(this.plugin.settings.authorSlug)
           .onChange(async (value) => {
             this.plugin.settings.authorSlug = sanitizeSlug(value);
@@ -165,11 +164,11 @@ export class GithubPageSettingTab extends PluginSettingTab {
         }),
       );
 
-    this.containerEl.createEl("h3", { text: "Site initialization" });
+    new Setting(this.containerEl).setName("Site initialization").setHeading();
 
     new Setting(this.containerEl)
       .setName("Starter site files")
-      .setDesc("Installs into the active repository. Empty repositories receive the full example; existing content receives only hidden site files and the Pages workflow. Existing files are never overwritten.")
+      .setDesc("Installs into the active repository. Empty repositories receive the full example; existing content receives only hidden site files and the pages workflow. Existing files are never overwritten.")
       .addButton((button) =>
         button.setButtonText("Download and initialize").onClick(() => void this.plugin.initializeStarterVault()),
       );

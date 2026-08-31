@@ -19,6 +19,6 @@
       "@obsidian-githubpage/node-adapter": ["packages/node-adapter/src/index.ts"]
     }
   },
-  "include": ["packages/**/*.ts", "esbuild.config.mjs"],
+  "include": ["packages/**/*.ts", "tests/**/*.ts", "vitest.config.ts", "esbuild.config.mjs"],
   "exclude": ["node_modules", "dist", "examples"]
 }

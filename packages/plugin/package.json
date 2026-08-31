@@ -1,11 +1,11 @@
 {
   "name": "@obsidian-githubpage/plugin",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@obsidian-githubpage/core": "1.1.0",
-    "@obsidian-githubpage/node-adapter": "1.1.0",
+    "@obsidian-githubpage/core": "1.1.1",
+    "@obsidian-githubpage/node-adapter": "1.1.1",
     "fflate": "0.8.2"
   }
 }

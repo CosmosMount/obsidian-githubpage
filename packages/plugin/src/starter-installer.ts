@@ -16,7 +16,7 @@ export interface StarterFile {
 export type StarterInstallMode = "full" | "compact";
 
 const COMPACT_PATHS = [".githubpage/", ".github/workflows/pages.yml"];
-const SUPPORT_DIRECTORIES = new Set([".git", ".obsidian", ".githubpage", ".github", "_site", "node_modules"]);
+const SUPPORT_DIRECTORIES = new Set([".git", ".githubpage", ".github", "_site", "node_modules"]);
 
 export async function installStarterArchive(
   vaultRoot: string,
@@ -60,9 +60,15 @@ export async function installStarterArchive(
  * own metadata and GitHubPage support directories do not count, so a freshly
  * cloned repository still receives the complete starter example.
  */
-export async function vaultHasUserContent(vaultRoot: string): Promise<boolean> {
-  const entries = await fs.readdir(vaultRoot, { withFileTypes: true });
-  return entries.some((entry) => !SUPPORT_DIRECTORIES.has(entry.name) && !entry.name.startsWith(".githubpage-init-"));
+export async function vaultHasUserContent(root: string, configDirectory: string): Promise<boolean> {
+  const entries = await fs.readdir(root, { withFileTypes: true });
+  const resolvedConfigDirectory = path.resolve(configDirectory);
+  return entries.some(
+    (entry) =>
+      path.resolve(root, entry.name) !== resolvedConfigDirectory &&
+      !SUPPORT_DIRECTORIES.has(entry.name) &&
+      !entry.name.startsWith(".githubpage-init-"),
+  );
 }
 
 export function selectStarterFiles(files: StarterFile[], mode: StarterInstallMode): StarterFile[] {

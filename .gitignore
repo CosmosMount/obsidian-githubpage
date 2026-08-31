@@ -8,9 +8,7 @@ packages/*/dist/
 .codex/
 AGENTS.md
 
-# Tests and test output
-tests/
-vitest.config.ts
+# Test output
 coverage/
 .vitest/
 test-results/

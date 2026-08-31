@@ -77,7 +77,7 @@ export function parseSiteConfig(raw: string, options: ParseSiteConfigOptions = {
       `site.json requires engine ${result.data.engineVersion}, but this build uses ${ENGINE_VERSION}`,
     );
   }
-  return result.data as SiteConfig;
+  return result.data;
 }
 
 export function parseThemeManifest(raw: string): ThemeManifest {
@@ -85,5 +85,5 @@ export function parseThemeManifest(raw: string): ThemeManifest {
   if (!result.success) {
     throw new GithubPageError("INVALID_THEME_MANIFEST", z.prettifyError(result.error));
   }
-  return result.data as ThemeManifest;
+  return result.data;
 }

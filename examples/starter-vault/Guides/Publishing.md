@@ -31,7 +31,7 @@ vault/
 ```json
 {
   "schemaVersion": 1,
-  "engineVersion": "1.1.0",
+  "engineVersion": "1.1.1",
   "site": {
     "title": "我的知识库",
     "baseUrl": "https://YOUR_NAME.github.io/YOUR_REPOSITORY",

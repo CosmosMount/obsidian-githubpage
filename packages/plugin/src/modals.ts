@@ -149,8 +149,8 @@ export class RepositoryPickerModal extends Modal {
   }
 
   onOpen(): void {
-    this.titleEl.setText("Choose a Git repository");
-    this.contentEl.createEl("p", { text: "GitHubPage found these repository roots inside the current Vault." });
+    this.titleEl.setText("Choose a git repository");
+    this.contentEl.createEl("p", { text: "GitHubPage found these repository roots inside the current vault." });
     for (const repository of this.repositories) {
       new Setting(this.contentEl)
         .setName(repository.label)
@@ -183,9 +183,9 @@ export class PublishPanelModal extends Modal {
   onOpen(): void {
     this.titleEl.setText("GitHubPage publishing");
     const summary = this.contentEl.createDiv({ cls: "githubpage-publish-summary" });
-    summary.createEl("div", { text: `Repository: ${this.snapshot.repository}` });
-    summary.createEl("div", { text: `Branch: ${this.snapshot.branch}` });
-    summary.createEl("div", {
+    summary.createDiv({ text: `Repository: ${this.snapshot.repository}` });
+    summary.createDiv({ text: `Branch: ${this.snapshot.branch}` });
+    summary.createDiv({
       text: this.snapshot.changedFiles === 0 ? "Local changes: none" : `Local changes: ${this.snapshot.changedFiles} file(s)`,
     });
 

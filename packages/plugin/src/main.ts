@@ -40,7 +40,7 @@ export default class GithubPagePlugin extends Plugin {
     await this.loadSettings();
     const adapter = this.app.vault.adapter;
     if (!(adapter instanceof FileSystemAdapter)) {
-      new Notice("GitHubPage requires a desktop filesystem Vault.");
+      new Notice("GitHubPage requires a desktop filesystem vault.");
       return;
     }
     this.vaultRoot = adapter.getBasePath();
@@ -83,10 +83,6 @@ export default class GithubPagePlugin extends Plugin {
     if (await this.isCompatibleVault()) void this.coordinator.buildNow();
   }
 
-  onunload(): void {
-    this.app.workspace.detachLeavesOfType(PREVIEW_VIEW_TYPE);
-  }
-
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
   }
@@ -118,10 +114,10 @@ export default class GithubPagePlugin extends Plugin {
     this.addCommand({ id: "open-preview", name: "Open website preview", callback: () => void this.openPreview() });
     this.addCommand({ id: "open-publish-panel", name: "Open publishing panel", callback: () => void this.openPublishPanel() });
     this.addCommand({ id: "publish-updates", name: "Git: Review and publish updates", callback: () => void this.publishUpdates() });
-    this.addCommand({ id: "detect-repository", name: "Git: Detect repository inside Vault", callback: () => void this.detectAndConfigureRepository() });
+    this.addCommand({ id: "detect-repository", name: "Git: Detect repository inside vault", callback: () => void this.detectAndConfigureRepository() });
     this.addCommand({
       id: "initialize-starter-vault",
-      name: "Initialize Starter Vault from GitHub",
+      name: "Initialize starter vault from GitHub",
       callback: () => void this.initializeStarterVault(),
     });
     this.addCommand({
@@ -164,16 +160,17 @@ export default class GithubPagePlugin extends Plugin {
     const siteConfigPath = path.join(this.repositoryRoot, ".githubpage", "site.json");
     try {
       await fs.access(siteConfigPath);
-      new Notice("This Vault already has a GitHubPage site configuration.");
+      new Notice("This vault already has a GitHubPage site configuration.");
       return;
     } catch {
       // First-time initialization is allowed when the site configuration is absent.
     }
 
     try {
-      new Notice("Downloading the GitHubPage Starter Vault…");
+      new Notice("Downloading the GitHubPage starter vault…");
       const response = await requestUrl({ url: STARTER_ARCHIVE_URL, method: "GET" });
-      const compact = await vaultHasUserContent(this.repositoryRoot);
+      const configDirectory = path.resolve(this.vaultRoot, this.app.vault.configDir);
+      const compact = await vaultHasUserContent(this.repositoryRoot, configDirectory);
       const fileCount = await installStarterArchive(this.repositoryRoot, response.arrayBuffer, compact ? "compact" : "full");
       this.configWatcher?.close();
       this.configWatcher = undefined;
@@ -266,9 +263,9 @@ export default class GithubPagePlugin extends Plugin {
 
   async detectAndConfigureRepository(): Promise<void> {
     try {
-      const repositories = await discoverGitRepositories(this.vaultRoot);
+      const repositories = await discoverGitRepositories(this.vaultRoot, this.app.vault.configDir);
       if (repositories.length === 0) {
-        new Notice("No Git repository was found in the Vault root or its first three folder levels.", 7000);
+        new Notice("No git repository was found in the vault root or its first three folder levels.", 7000);
         return;
       }
       const selected = repositories.length === 1 ? repositories[0] : await pickRepository(this.app, repositories);
@@ -378,7 +375,7 @@ export default class GithubPagePlugin extends Plugin {
 
   private async requireCompatible(action: () => Promise<void>): Promise<void> {
     if (!(await this.isCompatibleVault())) {
-      new Notice("The active repository has no .githubpage/site.json. Initialize it or choose another repository.", 7000);
+      new Notice("The active repository has no GitHubPage site configuration. Initialize it or choose another repository.", 7000);
       return;
     }
     await action();
@@ -404,10 +401,17 @@ export default class GithubPagePlugin extends Plugin {
   }
 
   private shouldRebuildFor(vaultPath: string): boolean {
+    const normalizedVaultPath = vaultPath.replaceAll("\\", "/").replace(/^\/+/, "");
+    const configDirectory = this.app.vault.configDir.replaceAll("\\", "/").replace(/^\/+|\/+$/g, "");
+    const inConfigDirectory =
+      configDirectory.length > 0 &&
+      (normalizedVaultPath === configDirectory || normalizedVaultPath.startsWith(`${configDirectory}/`));
+    if (inConfigDirectory) return false;
+
     const repositoryPath = repositoryPathFromVaultPath(this.vaultRoot, this.repositoryRoot, vaultPath);
     if (repositoryPath === undefined) return false;
     const normalized = repositoryPath.replaceAll("\\", "/");
-    if (normalized.startsWith(".obsidian/") || normalized.startsWith(".git/") || normalized.startsWith("_site/")) return false;
+    if (normalized.startsWith(".git/") || normalized.startsWith("_site/")) return false;
     const extension = path.posix.extname(normalized).toLocaleLowerCase("en");
     const assets = this.coordinator?.getConfig()?.content.assetExtensions ?? [];
     return extension === ".md" || assets.includes(extension);

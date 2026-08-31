@@ -442,7 +442,7 @@ export function markdownToPlainText(source: string): string {
     .replace(/!\[\[([^\]]+)\]\]/g, "$1")
     .replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, "$2 $1")
     .replace(/`{1,3}[^`]*`{1,3}/g, " ")
-    .replace(/[#>*_~\[\]()-]/g, " ")
+    .replace(/[#>*_~[\]()-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }

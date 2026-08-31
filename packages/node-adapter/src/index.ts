@@ -144,8 +144,8 @@ async function walkFiles(root: string, skipHiddenDirectories = false, relativeDi
 function resolveOutput(root: string, outputDirectory: string): string {
   const destination = resolveInside(root, outputDirectory);
   const relative = normalizeProjectPath(path.relative(root, destination));
-  const blocked = new Set(["", ".git", ".githubpage", ".obsidian"]);
-  if (blocked.has(relative) || relative.startsWith(".git/") || relative.startsWith(".githubpage/") || relative.startsWith(".obsidian/")) {
+  const rootSegment = relative.split("/")[0] ?? "";
+  if (!relative || rootSegment.startsWith(".")) {
     throw new GithubPageError("UNSAFE_OUTPUT_PATH", `Refusing to write build output to ${destination}`);
   }
   return destination;

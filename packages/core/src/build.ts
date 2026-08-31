@@ -1,5 +1,5 @@
 import path from "node:path";
-import matter from "gray-matter";
+import { parseFrontmatter } from "./frontmatter";
 import { markdownToPlainText, renderMarkdown, renderTableOfContents } from "./markdown";
 import { renderBreadcrumbs, renderNavigation } from "./navigation";
 import {
@@ -80,7 +80,7 @@ function collectPages(files: SourceFile[], diagnostics: BuildDiagnostic[]): Page
       diagnostics.push({ severity: "error", code: "UNSAFE_SOURCE_PATH", message: `Unsafe source path: ${file.path}` });
       continue;
     }
-    const parsed = matter(file.content);
+    const parsed = parseFrontmatter(file.content);
     if (parsed.data.draft === true || parsed.data.publish === false) continue;
     const route = sourcePathToRoute(sourcePath);
     const existing = routeOwners.get(route);
@@ -101,7 +101,7 @@ function collectPages(files: SourceFile[], diagnostics: BuildDiagnostic[]): Page
       outputPath: routeToOutputPath(route),
       title: typeof parsed.data.title === "string" && parsed.data.title.trim() ? parsed.data.title.trim() : fallbackTitle,
       body: parsed.content,
-      data: parsed.data as Record<string, unknown>,
+      data: parsed.data,
       plainText: markdownToPlainText(parsed.content),
     });
   }

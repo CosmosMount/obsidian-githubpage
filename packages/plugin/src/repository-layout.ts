@@ -9,7 +9,7 @@ export interface DetectedRepository {
   label: string;
 }
 
-const IGNORED_DIRECTORIES = new Set([".git", ".obsidian", ".githubpage", "node_modules", "_site"]);
+const IGNORED_DIRECTORIES = new Set([".git", ".githubpage", "node_modules", "_site"]);
 
 export function resolveRepositoryRoot(vaultRoot: string, mode: RepositoryMode, subfolder: string): string {
   const root = path.resolve(vaultRoot);
@@ -61,8 +61,13 @@ export function repositoryVaultPrefix(vaultRoot: string, repositoryRoot: string)
   return relative.replaceAll("\\", "/");
 }
 
-export async function discoverGitRepositories(vaultRoot: string, maxDepth = 3): Promise<DetectedRepository[]> {
+export async function discoverGitRepositories(
+  vaultRoot: string,
+  configDir: string,
+  maxDepth = 3,
+): Promise<DetectedRepository[]> {
   const root = path.resolve(vaultRoot);
+  const configDirectory = configDir.replaceAll("\\", "/").replace(/^\/+|\/+$/g, "");
   const repositories: DetectedRepository[] = [];
 
   const visit = async (directory: string, relativeDirectory: string, depth: number): Promise<void> => {
@@ -93,8 +98,10 @@ export async function discoverGitRepositories(vaultRoot: string, maxDepth = 3): 
         )
         .map((entry) => {
           const childRelative = relativeDirectory ? `${relativeDirectory}/${entry.name}` : entry.name;
-          return visit(path.join(directory, entry.name), childRelative, depth + 1);
-        }),
+          return { entry, childRelative };
+        })
+        .filter(({ childRelative }) => childRelative !== configDirectory)
+        .map(({ entry, childRelative }) => visit(path.join(directory, entry.name), childRelative, depth + 1)),
     );
   };
 
